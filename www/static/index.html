@@ -1,8 +1,32 @@
 <html>
-<head>
-<title>CarLog</title>
-</head>
-<body>
-Hello World!
-</body>
+  <head>
+    <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection">
+    <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print"> 
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection">
+    <![endif]-->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+
+    <title>CarLog</title>
+  </head>
+  <body>
+
+  <script type="text/javascript">
+	$(document).ready(function() { 
+		$.ajax("rest/")
+		.done(function(response) {
+			$("#msgid").text(response);
+		})
+		.fail(function() {
+			$("#msgid").text("failure.");
+		});
+	});
+  </script>
+
+  <div id="msgid">
+  </div>
+
+  </body>
 </html>
