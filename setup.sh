@@ -1,11 +1,13 @@
 #!/bin/bash
 
-rm -rf carLog.db
+DBPATH=www/wsgi-scripts/carLog.db
 
-sqlite3 carLog.db < db/createDb.sql
+rm -rf $DBPATH
+
+sqlite3 $DBPATH < db/createDb.sql
 
 if [ -f db/populateDb.sql ]; then
-	sqlite3 carLog.db < db/populateDb.sql
+	sqlite3 $DBPATH < db/populateDb.sql
 fi
 
 if [ -f res/rawMileage.csv ]; then 
