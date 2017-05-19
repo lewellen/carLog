@@ -121,6 +121,7 @@ class CarLogDB:
 		return data
 
 	def getAllVehicleMileage(self, vehicleId):
+		print ">>", vehicleId
 		c = self.conn.cursor()
 		c.execute("select id, vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, totalMileage, gallons, pricePerGallon from mileageEntries where vehicleId = ?", vehicleId)
 		results = c.fetchall()
