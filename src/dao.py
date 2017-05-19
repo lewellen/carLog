@@ -2,6 +2,90 @@ import datetime
 import operator
 import sqlite3
 
+class KeyValidator:
+	def __init__(self, dictValue, key):
+		self.dictValue = dictValue
+		self.key = key
+		self.checks = []
+		pass
+	
+	def exists(self):
+		self.checks.append({
+			"func": lambda : self.key in self.dictValue, 
+			"msg" : "'%s' must be in dictionary." % self.key
+		})
+		return self
+
+	def isNotNone(self):
+		self.checks.append({
+			"func" : lambda : self.dictValue[self.key] is not None,
+			"msg" : "'%s' must not be None." % self.key
+		})
+		return self
+
+	def isNotEmpty(self):
+		self.checks.append({
+			"func" : lambda : len(self.dictValue[self.key]) > 0,
+			"msg" : "'%s' must not be empty string." % self.key
+		})
+		return self
+
+	def isShorterThan(self, maxLen):
+		self.checks.append({
+			"func" : lambda : len(self.dictValue[self.key]) < maxLen,
+			"msg" : "'%s' must be shorter than %d characters." % (self.key, maxLen)
+		})
+		return self
+
+	def isPositiveInteger(self):
+		self.checks.append({
+			"func" : lambda : self.dictValue[self.key].isdigit(),
+			"msg" : "'%s' must be a positive integer." % (self.key)
+		})
+		return self
+
+	def isZeroOneBoolean(self):
+		self.checks.append({
+			"func" : lambda : self.dictValue[self.key] in ["0", "1"],
+			"msg" : "'%s' must be a positive integer." % (self.key)
+		})
+		return self
+
+	def existsNotNullShorterThan(self, maxLen):
+		return self.exists().isNotNone().isNotEmpty().isShorterThan(maxLen)
+
+	def existsNullableShorterThan(self, maxLen):
+		if self.key in self.dictValue and self.dictValue[self.key] is not None:
+			return self.exists().isNotNone().isNotEmpty().isShorterThan(maxLen)
+		return self.exists()
+
+	def existsPositiveInteger(self):
+		return self.exists().isNotNone().isNotEmpty().isPositiveInteger()
+		
+	def existsZeroOneBoolean(self):
+		return self.exists().isNotNone().isNotEmpty().isZeroOneBoolean()
+
+	def validate(self):
+		for check in self.checks:
+			isValid = check["func"]()
+			if not isValid:
+				return False, check["msg"]
+
+		return True, None
+
+class DictValidator:
+	def __init__(self, keyValidators):
+		self.keyValidators = keyValidators
+		pass
+
+	def validate(self):
+		for keyValidator in self.keyValidators:
+			isValid, msg = keyValidator.validate()
+			if not isValid:
+				return isValid, msg
+
+		return True, None
+
 class CarLogDB:
 	def __init__(self, sqlite3DbPath):
 		self.sqlite3DbPath = sqlite3DbPath
@@ -22,6 +106,127 @@ class CarLogDB:
 		if self.conn is not None:
 			self.conn.close();
 			self.conn = None
+
+	def createFromSchema(self, path):
+		with open(path) as f:
+			self.conn.cursor().executescript(f.read())
+		self.conn.commit() 
+
+	def __addReturn(self, idValue, msg):
+		return { "id" : idValue, "msg" : repr(msg) }
+
+	def addUser(self, user):
+		if user is None:
+			return self.__addReturn(None, "User cannot be empty.")
+
+		validator = DictValidator([
+			KeyValidator(user, "name").existsNotNullShorterThan(256) 
+		])
+		isValid, msg = validator.validate()
+		if not isValid:
+			return self.__addReturn(None, msg)
+
+		try:
+			c = self.conn.cursor()
+			c.execute("insert into users (name) values (?)", (user["name"],) )
+			self.conn.commit()
+			return self.__addReturn(c.lastrowid, None)
+		except sqlite3.Error, e:
+			return self.__addReturn(None, e)
+
+	def addVehicle(self, vehicle):
+		if vehicle is None:
+			return self.__addReturn(None, "Vehicle cannot be empty.")
+
+		validator = DictValidator([
+			KeyValidator(vehicle, "userId").existsPositiveInteger(),
+			KeyValidator(vehicle, "vin").existsNotNullShorterThan(256),
+			KeyValidator(vehicle, "make").existsNotNullShorterThan(256),
+			KeyValidator(vehicle, "model").existsNotNullShorterThan(256),
+			KeyValidator(vehicle, "year").existsPositiveInteger(),
+			KeyValidator(vehicle, "stillOwn").existsZeroOneBoolean()
+		])
+		isValid, msg = validator.validate()
+		if not isValid:
+			return self.__addReturn(None, msg)
+
+		try:
+			c = self.conn.cursor()
+			c.execute("insert into vehicles (userId, vin, make, model, year, stillOwn) values (?, ?, ?, ?, ?, ?)", (userId, vehicle["vin"], vehicle["make"], vehicle["model"], vehicle["year"], vehicle["stillOwn"]))
+			self.conn.commit()
+			return self.__addReturn(c.lastrowid, None)
+		except sqlite3.Error, e:
+			return self.__addReturn(None, e)
+
+	def addProviderType(self, providerType):
+		if providerType is None:
+			return self.__addReturn(None, "ProviderType cannot be empty.")
+
+		validator = DictValidator([
+			KeyValidator(providerType, "name").existsNotNullShorterThan(256),
+		])
+		isValid, msg = validator.validate()
+		if not isValid:
+			return self.__addReturn(None, msg)
+
+		try:
+			c = self.conn.cursor()
+			c.execute("insert into providerTypes (name) values (?)", (providerType["name"],))
+			self.conn.commit()
+			return self.__addReturn(c.lastrowid, None)
+		except sqlite3.Error, e:
+			return self.__addReturn(None, e)
+
+	
+	def addProvider(self, provider):
+		if provider is None:
+			return self.__addReturn(None, "Provider cannot be empty.")
+
+		validator = DictValidator([
+			KeyValidator(provider, "providerTypeId").existsPositiveInteger(),
+			KeyValidator(provider, "name").existsNotNullShorterThan(256),
+			KeyValidator(provider, "address").existsNullableShorterThan(256),
+		])
+		isValid, msg = validator.validate()
+		if not isValid:
+			return self.__addReturn(None, msg)
+
+		try:
+			c = self.conn.cursor()
+			c.execute("insert into providers (providerType, name, address) values (?, ?, ?)", (provider["providerTypeId"], provider["name"], provider["address"]))
+			self.conn.commit()
+			return self.__addReturn(c.lastrowid, None)
+		except sqlite3.Error, e:
+			return self.__addReturn(None, e)
+
+
+	def addDestination(self, destination):
+		if destination is None:
+			return self.__addReturn(None, "Destination cannot be empty.")
+
+		validator = DictValidator([
+			KeyValidator(destination, "name").existsNotNullShorterThan(256),
+		])
+		isValid, msg = validator.validate()
+		if not isValid:
+			return self.__addReturn(None, msg)
+
+		try:
+			c = self.conn.cursor()
+			c.execute("insert into destinations (name) values (?)", (destination["name"],))
+			self.conn.commit()
+			return self.__addReturn(c.lastrowid, None)
+		except sqlite3.Error, e:
+			return self.__addReturn(None, e)
+
+	def addMileageEntry(self, mileage):
+		return self.__addReturn(None, "NotImplemented")
+
+	def addMaintenanceEntry(self, maintenance):
+		return self.__addReturn(None, "NotImplemented")
+
+	def addEventEntry(self, event):
+		return self.__addReturn(None, "NotImplemented")
 
 	def getAllUsers(self):
 		c = self.conn.cursor()
