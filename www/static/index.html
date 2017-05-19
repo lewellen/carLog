@@ -39,21 +39,60 @@
 		});
 	});
   </script>
- 
-  <div id="msgid">
-  </div>
 
-  <div id="carDetails">
-    <span class="year"></span> <span class="make"></span> <span class="model"></span>
-    <br/>
-    Estimated features:
-    Tank size: <span class="tank"></span> &pm; <span class="tankCI"></span> (gal)
-    MPG: <span class="mpg"></span> &pm; <span class="mpgCI" ></span> (mpg)
-    Range: <span class="range"></span> &pm; <span class="rangeCI" ></span> (mi)
-  </div>
+  <div class="container showgrid">
+    <div class="span-4">
+      Car Log: <b>Year Make Model</b>
+    </div>
+    <div class="span-19" style="text-align:right;">
+      <a href="">Vehicles</a> | <a href="">Settings</a>
+    </div>
 
-  <div id="ppmMpgPlot">
-  </div>
+    <div class="span-24">
+      <a href="">Dashboard</a> | <a href="">Mileage</a> | <a href="">Maintenance</a> | <a href="">Events</a>
+    </div>
 
-  </body>
+    <div class="span-24" id="messageBox"></div>
+
+    <div class="span-6" style="border: 1px solid black;" id="carDetails">
+      Details:
+      <ul>
+        <li>VIN:</li>
+        <li>Odometer: (days)</li>
+      </ul>
+
+      Estimated features:
+      <ul>
+        <li>Tank size: <span class="tank"></span> &pm; <span class="tankCI"></span> (gal)</li>
+        <li>MPG: <span class="mpg"></span> &pm; <span class="mpgCI" ></span> (mpg)</li>
+        <li>Range: <span class="range"></span> &pm; <span class="rangeCI" ></span> (mi)</li>
+      </ul>
+
+      Average Costs:
+      <ul>
+        <li>Days between refills: &pm; (days) </li>
+        <li>EA: &pm; ($) </li>
+        <li>PPM: &pm; ($/mi) </li>
+      <ul>
+    </div>
+
+    <div class="span-10" style="border: 1px solid black;">
+     Annual Summary
+     <ul>
+       <li>Miles driven</li>
+       <li>Gallons</li>
+       <li>Spent on gas</li>
+       <li>Spent on insurance and fees</li>
+       <li>Spent on maintenance</li>
+     </ul>
+    </div>
+
+    <div class="span-6" style="border: 1px solid black;">
+      Anticipated Maintenance
+      <ul></ul>
+
+      Previous Maintenance
+      <ul></ul>
+    </div>
+  </div>
 </html>
