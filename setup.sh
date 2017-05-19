@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DBPATH=www/wsgi-scripts/carLog.db
+DBPATH=www/carLog.db
 
 rm -rf $DBPATH
 
@@ -11,13 +11,13 @@ if [ -f db/populateDb.sql ]; then
 fi
 
 if [ -f res/rawMileage.csv ]; then 
-	python scripts/importRawMileage.py carLog.db res/rawMileage.csv
+	python scripts/importRawMileage.py $DBPATH res/rawMileage.csv
 fi
 
 if [ -f res/rawMaintenance.csv ]; then
-	python scripts/importRawMaintenance.py carLog.db res/rawMaintenance.csv
+	python scripts/importRawMaintenance.py $DBPATH res/rawMaintenance.csv
 fi
 
 if [ -f res/rawEvents.csv ]; then
-	python scripts/importRawEvents.py carLog.db res/rawEvents.csv
+	python scripts/importRawEvents.py $DBPATH res/rawEvents.csv
 fi

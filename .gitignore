@@ -1,3 +1,5 @@
+.ipynb_checkpoints
 db/populateDb.sql
 res
 carLog.db
+.pyc

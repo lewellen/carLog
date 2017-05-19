@@ -34,7 +34,7 @@ if __name__ == "__main__":
 	entries = []
 	for row in csvRows:
 		entries.append(
-			(0, row["Date"], row["Event"])
+			(1, row["Date"], row["Event"])
 		)
 
 	c.executemany('insert into eventEntries (vehicleId, at, description) values (?, ?, ?)', entries)

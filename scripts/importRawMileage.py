@@ -52,7 +52,7 @@ if __name__ == "__main__":
 	entries = []
 	for row in csvRows:
 		entries.append(
-			(0, 0, dbDestinations[row["Dest"]], row["Start"], row["End"], row["Distance"], row["Total Dist"], row["Fuel"], row["PPG"])
+			(1, 1, dbDestinations[row["Dest"]], row["Start"], row["End"], row["Distance"], row["Total Dist"], row["Fuel"], row["PPG"])
 		)
 
 	c.executemany('insert into mileageEntries (vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, totalMileage, gallons, pricePerGallon) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', entries)

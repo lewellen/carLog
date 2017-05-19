@@ -14,38 +14,6 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, accuracy_score
 
-class CarLogDB:
-	def __init__(self, sqlite3DbPath):
-		self.conn = sqlite3.connect(sqlite3DbPath)
-
-	def close(self):
-		self.conn.close();
-
-	def getAllMileageByVehicleId(self, vehicleId):
-		c = self.conn.cursor()
-		c.execute("select fromDate, toDate, tripMileage, totalMileage, gallons, pricePerGallon, destinationId from mileageEntries where vehicleId = 1");
-		results = c.fetchall()
-
-		data = []
-		for result in results:
-		    data.append({
-			"fromDate": datetime.datetime.strptime(operator.itemgetter(0)(result), "%Y-%m-%d %H:%M:%S"),
-			"toDate": datetime.datetime.strptime(operator.itemgetter(1)(result), "%Y-%m-%d %H:%M:%S"),
-			"tripMileage": float(operator.itemgetter(2)(result)),
-			"totalMileage" : float(operator.itemgetter(3)(result)),
-			"gallons": float(operator.itemgetter(4)(result)),
-			"pricePerGallon": float(operator.itemgetter(5)(result)),
-			"destinationId" : operator.itemgetter(6)(result)
-		    })
-
-		return data
-
-	def getAllDestinations(self):
-		c = self.conn.cursor()		
-		c.execute("select id, name from destinations")
-		results = c.fetchall()
-		nameFromDestId = { i : name for (i, name) in results }
-		return nameFromDestId
 
 class MileageData:
 	def __init__(self, mileageEntries):

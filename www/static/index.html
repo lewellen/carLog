@@ -15,17 +15,44 @@
 
   <script type="text/javascript">
 	$(document).ready(function() { 
-		$.ajax("rest/")
-		.done(function(response) {
-			$("#msgid").text(response);
-		})
-		.fail(function() {
-			$("#msgid").text("failure.");
+		$.ajax({
+			url: "rest/vehicles/1",
+			timeout : 3000,
+			success : function(response) {
+				console.log(response)
+				$("#carDetails .make").text(response.vehicle.make)
+				$("#carDetails .model").text(response.vehicle.model)
+				$("#carDetails .year").text(response.vehicle.year)
+
+				$("#carDetails .tank").text(response.tank.mean.toFixed(1))
+				$("#carDetails .tankCI").text(response.tank.cirange.toFixed(1))
+
+				$("#carDetails .mpg").text(response.mpg.mean.toFixed(1))
+				$("#carDetails .mpgCI").text(response.mpg.cirange.toFixed(1))
+
+				$("#carDetails .range").text(response.range.mean.toFixed(1))
+				$("#carDetails .rangeCI").text(response.range.cirange.toFixed(1))
+			},
+			fail : function() {
+				$("#msgid").text("Failed to load car information");
+			}
 		});
 	});
   </script>
-
+ 
   <div id="msgid">
+  </div>
+
+  <div id="carDetails">
+    <span class="year"></span> <span class="make"></span> <span class="model"></span>
+    <br/>
+    Estimated features:
+    Tank size: <span class="tank"></span> &pm; <span class="tankCI"></span> (gal)
+    MPG: <span class="mpg"></span> &pm; <span class="mpgCI" ></span> (mpg)
+    Range: <span class="range"></span> &pm; <span class="rangeCI" ></span> (mi)
+  </div>
+
+  <div id="ppmMpgPlot">
   </div>
 
   </body>
