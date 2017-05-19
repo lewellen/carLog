@@ -2,89 +2,7 @@ import datetime
 import operator
 import sqlite3
 
-class KeyValidator:
-	def __init__(self, dictValue, key):
-		self.dictValue = dictValue
-		self.key = key
-		self.checks = []
-		pass
-	
-	def exists(self):
-		self.checks.append({
-			"func": lambda : self.key in self.dictValue, 
-			"msg" : "'%s' must be in dictionary." % self.key
-		})
-		return self
-
-	def isNotNone(self):
-		self.checks.append({
-			"func" : lambda : self.dictValue[self.key] is not None,
-			"msg" : "'%s' must not be None." % self.key
-		})
-		return self
-
-	def isNotEmpty(self):
-		self.checks.append({
-			"func" : lambda : len(self.dictValue[self.key]) > 0,
-			"msg" : "'%s' must not be empty string." % self.key
-		})
-		return self
-
-	def isShorterThan(self, maxLen):
-		self.checks.append({
-			"func" : lambda : len(self.dictValue[self.key]) < maxLen,
-			"msg" : "'%s' must be shorter than %d characters." % (self.key, maxLen)
-		})
-		return self
-
-	def isPositiveInteger(self):
-		self.checks.append({
-			"func" : lambda : self.dictValue[self.key].isdigit(),
-			"msg" : "'%s' must be a positive integer." % (self.key)
-		})
-		return self
-
-	def isZeroOneBoolean(self):
-		self.checks.append({
-			"func" : lambda : self.dictValue[self.key] in ["0", "1"],
-			"msg" : "'%s' must be a positive integer." % (self.key)
-		})
-		return self
-
-	def existsNotNullShorterThan(self, maxLen):
-		return self.exists().isNotNone().isNotEmpty().isShorterThan(maxLen)
-
-	def existsNullableShorterThan(self, maxLen):
-		if self.key in self.dictValue and self.dictValue[self.key] is not None:
-			return self.exists().isNotNone().isNotEmpty().isShorterThan(maxLen)
-		return self.exists()
-
-	def existsPositiveInteger(self):
-		return self.exists().isNotNone().isNotEmpty().isPositiveInteger()
-		
-	def existsZeroOneBoolean(self):
-		return self.exists().isNotNone().isNotEmpty().isZeroOneBoolean()
-
-	def validate(self):
-		for check in self.checks:
-			isValid = check["func"]()
-			if not isValid:
-				return False, check["msg"]
-
-		return True, None
-
-class DictValidator:
-	def __init__(self, keyValidators):
-		self.keyValidators = keyValidators
-		pass
-
-	def validate(self):
-		for keyValidator in self.keyValidators:
-			isValid, msg = keyValidator.validate()
-			if not isValid:
-				return isValid, msg
-
-		return True, None
+from validation import KeyValidator, DictValidator
 
 class CarLogDB:
 	def __init__(self, sqlite3DbPath):
@@ -152,7 +70,7 @@ class CarLogDB:
 
 		try:
 			c = self.conn.cursor()
-			c.execute("insert into vehicles (userId, vin, make, model, year, stillOwn) values (?, ?, ?, ?, ?, ?)", (userId, vehicle["vin"], vehicle["make"], vehicle["model"], vehicle["year"], vehicle["stillOwn"]))
+			c.execute("insert into vehicles (userId, vin, make, model, year, stillOwn) values (?, ?, ?, ?, ?, ?)", (vehicle["userId"], vehicle["vin"], vehicle["make"], vehicle["model"], vehicle["year"], vehicle["stillOwn"]))
 			self.conn.commit()
 			return self.__addReturn(c.lastrowid, None)
 		except sqlite3.Error, e:
@@ -193,12 +111,11 @@ class CarLogDB:
 
 		try:
 			c = self.conn.cursor()
-			c.execute("insert into providers (providerType, name, address) values (?, ?, ?)", (provider["providerTypeId"], provider["name"], provider["address"]))
+			c.execute("insert into providers (providerTypeId, name, address) values (?, ?, ?)", (provider["providerTypeId"], provider["name"], provider["address"]))
 			self.conn.commit()
 			return self.__addReturn(c.lastrowid, None)
 		except sqlite3.Error, e:
 			return self.__addReturn(None, e)
-
 
 	def addDestination(self, destination):
 		if destination is None:
@@ -219,14 +136,79 @@ class CarLogDB:
 		except sqlite3.Error, e:
 			return self.__addReturn(None, e)
 
-	def addMileageEntry(self, mileage):
-		return self.__addReturn(None, "NotImplemented")
+	def addMileageEntry(self, entry):
+		if entry is None:
+			return self.__addReturn(None, "Entry cannot be empty.")
 
-	def addMaintenanceEntry(self, maintenance):
-		return self.__addReturn(None, "NotImplemented")
+		validator = DictValidator([
+			KeyValidator(entry, "vehicleId").existsPositiveInteger(),
+			KeyValidator(entry, "providerId").existsPositiveInteger(),
+			KeyValidator(entry, "destinationId").existsPositiveInteger(),
+			KeyValidator(entry, "fromDate").exists().isNotNone(),
+			KeyValidator(entry, "toDate").exists().isNotNone(),
+			KeyValidator(entry, "tripMileage").existsPositiveInteger(),
+			KeyValidator(entry, "totalMileage").existsPositiveInteger(),
+			KeyValidator(entry, "gallons").existsPositiveInteger(),
+			KeyValidator(entry, "pricePerGallon").existsPositiveInteger()
+		])
+		isValid, msg = validator.validate()
+		if not isValid:
+			return self.__addReturn(None, msg)
 
-	def addEventEntry(self, event):
-		return self.__addReturn(None, "NotImplemented")
+		try:
+			c = self.conn.cursor()
+			c.execute("insert into mileageEntries (vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, totalMileage, gallons, pricePerGallon) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", (entry["vehicleId"], entry["providerId"], entry["destinationId"], entry["fromDate"], entry["toDate"], entry["tripMileage"], entry["totalMileage"], entry["gallons"], entry["pricePerGallon"]))
+			self.conn.commit()
+			return self.__addReturn(c.lastrowid, None)
+		except sqlite3.Error, e:
+			return self.__addReturn(None, e)
+
+	def addMaintenanceEntry(self, entry):
+		if entry is None:
+			return self.__addReturn(None, "Entry cannot be empty.")
+
+		validator = DictValidator([
+			KeyValidator(entry, "vehicleId").existsPositiveInteger(),
+			KeyValidator(entry, "providerId").existsPositiveInteger(),
+			KeyValidator(entry, "at").exists().isNotNone(),
+			KeyValidator(entry, "primaryContact").existsNullableShorterThan(256),
+			KeyValidator(entry, "phoneNumber").existsNullableShorterThan(256),
+			KeyValidator(entry, "description").existsNotNullShorterThan(256),
+			KeyValidator(entry, "cost").existsPositiveInteger()
+		])
+		isValid, msg = validator.validate()
+		if not isValid:
+			return self.__addReturn(None, msg)
+
+		try:
+			c = self.conn.cursor()
+			c.execute("insert into maintenanceEntries (vehicleId, providerId, at, primaryContact, phoneNumber, description, cost) values (?, ?, ?, ?, ?, ?, ?)", (entry["vehicleId"], entry["providerId"], entry["at"], entry["primaryContact"], entry["phoneNumber"], entry["description"], entry["cost"]))
+			self.conn.commit()
+			return self.__addReturn(c.lastrowid, None)
+		except sqlite3.Error, e:
+			return self.__addReturn(None, e)
+
+	def addEventEntry(self, entry):
+		if entry is None:
+			return self.__addReturn(None, "Entry cannot be empty.")
+
+		validator = DictValidator([
+			KeyValidator(entry, "vehicleId").existsPositiveInteger(),
+			KeyValidator(entry, "at").exists().isNotNone(),
+			KeyValidator(entry, "totalMileage").exists(),
+			KeyValidator(entry, "description").existsNullableShorterThan(256)
+		])
+		isValid, msg = validator.validate()
+		if not isValid:
+			return self.__addReturn(None, msg)
+
+		try:
+			c = self.conn.cursor()
+			c.execute("insert into eventEntries (vehicleId, at, totalMileage, description) values (?, ?, ?, ?)", (entry["vehicleId"], entry["at"], entry["totalMileage"], entry["description"]))
+			self.conn.commit()
+			return self.__addReturn(c.lastrowid, None)
+		except sqlite3.Error, e:
+			return self.__addReturn(None, e)
 
 	def getAllUsers(self):
 		c = self.conn.cursor()
@@ -316,7 +298,7 @@ class CarLogDB:
 				"id" : int(operator.itemgetter(0)(result)),
 				"vehicleId" : int(operator.itemgetter(1)(result)),
 				"providerId" : int(operator.itemgetter(2)(result)),
-				"at": datetime.datetime.strptime(operator.itemgetter(3)(result), "%Y-%m-%d %H:%M:%S"),
+				"at": datetime.datetime.strptime(operator.itemgetter(3)(result), "%Y-%m-%d"),
 				"primaryContact" : operator.itemgetter(4)(result),
 				"phoneNumber" : operator.itemgetter(5)(result),
 				"description" : operator.itemgetter(6)(result),
@@ -339,8 +321,8 @@ class CarLogDB:
 				"providerId" : int(operator.itemgetter(2)(result)),
 				"destinationId" : int(operator.itemgetter(3)(result)),
 
-				"fromDate": datetime.datetime.strptime(operator.itemgetter(4)(result), "%Y-%m-%d %H:%M:%S"),
-				"toDate": datetime.datetime.strptime(operator.itemgetter(5)(result), "%Y-%m-%d %H:%M:%S"),
+				"fromDate": datetime.datetime.strptime(operator.itemgetter(4)(result), "%Y-%m-%d"),
+				"toDate": datetime.datetime.strptime(operator.itemgetter(5)(result), "%Y-%m-%d"),
 				"tripMileage": float(operator.itemgetter(6)(result)),
 				"totalMileage" : float(operator.itemgetter(7)(result)),
 				"gallons": float(operator.itemgetter(8)(result)),
@@ -360,7 +342,7 @@ class CarLogDB:
 				"id" : int(operator.itemgetter(0)(result)),
 				"vehicleId" : int(operator.itemgetter(1)(result)),
 
-				"at": datetime.datetime.strptime(operator.itemgetter(2)(result), "%Y-%m-%d %H:%M:%S"),
+				"at": datetime.datetime.strptime(operator.itemgetter(2)(result), "%Y-%m-%d"),
 				"totalMileage" : operator.itemgetter(3)(result),
 				"description": operator.itemgetter(4)(result),
 			})

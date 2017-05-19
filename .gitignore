@@ -1,5 +1,8 @@
-.ipynb_checkpoints
-db/populateDb.sql
-res
 carLog.db
-.pyc
+db/populateDb.sql
+
+res/
+
+*.ipynb_checkpoints
+*.pyc
+*.swp
