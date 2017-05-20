@@ -4,7 +4,7 @@ import os.path
 from flask import Flask, request, jsonify
 from dao import CarLogDB
 
-DATABASE_NAME = "www/carLog.db"
+DB_PATH = "/var/www/carLog/carLog.db"
 
 application = Flask(__name__)
 
@@ -130,5 +130,8 @@ if __name__ == "__main__":
 		if not os.path.isfile(DB_PATH):	
 			with CarLogDB(DB_PATH) as db:
 				db.createFromSchema("db/createDb.sql")
+	else:
+		if not os.path.isfile(DB_PATH):
+			DB_PATH = "www/carLog.db"
 
 	application.run()
