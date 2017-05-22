@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection">
     <![endif]-->
 
+    <link rel="stylesheet" href="css/index.css" type="text/css"> 
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
 
@@ -16,25 +18,21 @@
   <script type="text/javascript">
 	$(document).ready(function() { 
 		$.ajax({
-			url: "rest/vehicles/1",
+			url: "/rest/users/1/vehicles",
 			timeout : 3000,
-			success : function(response) {
-				console.log(response)
-				$("#carDetails .make").text(response.vehicle.make)
-				$("#carDetails .model").text(response.vehicle.model)
-				$("#carDetails .year").text(response.vehicle.year)
+			success : function(vehicles) {
+				if(vehicles.length == 0) {
+					return
+				}
 
-				$("#carDetails .tank").text(response.tank.mean.toFixed(1))
-				$("#carDetails .tankCI").text(response.tank.cirange.toFixed(1))
-
-				$("#carDetails .mpg").text(response.mpg.mean.toFixed(1))
-				$("#carDetails .mpgCI").text(response.mpg.cirange.toFixed(1))
-
-				$("#carDetails .range").text(response.range.mean.toFixed(1))
-				$("#carDetails .rangeCI").text(response.range.cirange.toFixed(1))
+				vehicle = vehicles[0]
+				$("#vehicle .make").text(vehicle.make)
+				$("#vehicle .model").text(vehicle.model)
+				$("#vehicle .year").text(vehicle.year)
+				$("#vehicle .vin").text(vehicle.vin)
 			},
 			fail : function() {
-				$("#msgid").text("Failed to load car information");
+				$("#messageBox").text("Failed to load car information");
 			}
 		});
 	});
@@ -42,33 +40,40 @@
 
   <div class="container showgrid">
     <div class="span-4">
-      Car Log: <b>Year Make Model</b>
+      <h1>Car Log</h1>
     </div>
-    <div class="span-19" style="text-align:right;">
+    <div class="span-20 last" style="text-align:right;">
       <a href="">Vehicles</a> | <a href="">Settings</a>
     </div>
 
-    <div class="span-24">
-      <a href="">Dashboard</a> | <a href="">Mileage</a> | <a href="">Maintenance</a> | <a href="">Events</a>
+    <div id="tabs" class="span-24 last">
+      <a href="index.html">Dashboard</a> | <a href="mileage.html">Mileage</a> | <a href="maintenance.html">Maintenance</a> | <a href="events.html">Events</a>
     </div>
 
-    <div class="span-24" id="messageBox"></div>
+    <div class="span-6 tile">a</div>
+    <div class="span-6 tile">a</div>
+    <div class="span-6 tile">a</div>
+    <div class="span-6 last tile">a</div>
 
-    <div class="span-6" style="border: 1px solid black;" id="carDetails">
-      Details:
+    <div id="messageBox" class="span-24 last"></div>
+
+    <div id="vehicle" class="span-6" style="border: 1px solid black;">
+      <h2><span class="year"></span> <span class="make"></span> <span class="model"></span></h2>
+
+      <h3>Details</h3>
       <ul>
-        <li>VIN:</li>
-        <li>Odometer: (days)</li>
+        <li>VIN: <span class="vin"></span></li>
+        <li>Odometer: <span class="odometer"></span> (mi)</li>
       </ul>
 
-      Estimated features:
+      <h3>Estimated features</h3>
       <ul>
         <li>Tank size: <span class="tank"></span> &pm; <span class="tankCI"></span> (gal)</li>
         <li>MPG: <span class="mpg"></span> &pm; <span class="mpgCI" ></span> (mpg)</li>
         <li>Range: <span class="range"></span> &pm; <span class="rangeCI" ></span> (mi)</li>
       </ul>
 
-      Average Costs:
+      <h3>Average Costs</h3>
       <ul>
         <li>Days between refills: &pm; (days) </li>
         <li>EA: &pm; ($) </li>
@@ -76,8 +81,8 @@
       <ul>
     </div>
 
-    <div class="span-10" style="border: 1px solid black;">
-     Annual Summary
+    <div class="span-11" style="border: 1px solid black;">
+     <h3>Annual Summary</h3>
      <ul>
        <li>Miles driven</li>
        <li>Gallons</li>
@@ -87,12 +92,26 @@
      </ul>
     </div>
 
-    <div class="span-6" style="border: 1px solid black;">
-      Anticipated Maintenance
+    <div class="span-6 last" style="border: 1px solid black;">
+      <h3>Maintenance</h3>
+
+      <h4>Anticipated</h4>
       <ul></ul>
 
-      Previous Maintenance
+      <h4>Previous</h4>
       <ul></ul>
     </div>
+  </div>
+
+  <div class="error">
+    <img src="img/fugue/cross-circle.png" /> Error
+  </div>
+
+  <div class="notice">
+    <img src="img/fugue/exclamation-circle.png" /> Notice
+  </div>
+
+  <div  class="success">
+    <img src="img/fugue/tick-circle.png"/> Success
   </div>
 </html>

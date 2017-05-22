@@ -1,0 +1,71 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection">
+    <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print"> 
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection">
+    <![endif]-->
+
+    <link rel="stylesheet" href="css/index.css" type="text/css"> 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+
+    <title>CarLog</title>
+  </head>
+  <body>
+
+  <script type="text/javascript">
+	$(document).ready(function() { 
+		$.ajax({
+			url : "/rest/vehicles/1/maintenance",
+			timeout: 3000,
+			success : function(maintenance) {
+				console.log(maintenance);
+
+				html = "<table>"
+				html += "<tr><th>Date</th><th>Description</th><th>Cost ($)</th><th>Contact</th><th>Contact Phone Number</th></tr>"
+				for (var i = 0, len = maintenance.length; i < len; ++i) {
+					entry = maintenance[i];
+					html += "<tr>"
+					html += "<td>" + entry.at + "</td>"
+					html += "<td>" + entry.description + "</td>"
+					html += "<td>" + entry.cost + "</td>"
+					html += "<td>" + entry.primaryContact + "</td>"
+					html += "<td>" + entry.phoneNumber + "</td>"
+					html += "</tr>"
+				}
+				html += "</table>"
+
+				$(html).appendTo("#maintenance")
+			},
+			fail : function() {
+				$("#messageBox").text("Failed to load maintenance");
+			}
+		});
+	});
+  </script>
+
+  <div class="container showgrid">
+    <div class="span-4">
+      <h1>Car Log</h1>
+    </div>
+    <div class="span-20 last" style="text-align:right;">
+      <a href="">Vehicles</a> | <a href="">Settings</a>
+    </div>
+
+  </div>
+
+  <div class="container">
+    <div class="span-18 last">
+      <a href="index.html">Dashboard</a> | <a href="mileage.html">Mileage</a> | <a href="maintenance.html">Maintenance</a> | <a href="events.html">Events</a>
+    </div>
+
+    <div class="span-6 last" style="text-align:right;">
+      <a href=""><img src="img/fugue/document-excel-csv.png" /> Export CSV</a> | <a href=""><img src="img/fugue/plus-circle.png" /> Add Entry</a>
+    </div>
+
+    <div id="messageBox" class="span-24 last"></div>
+    <div id="maintenance"></div>
+  </div>
+</html>

@@ -1,0 +1,200 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection">
+    <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print"> 
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection">
+    <![endif]-->
+
+    <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css"> 
+ 
+   <link rel="stylesheet" href="css/index.css" type="text/css"> 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+
+    <title>CarLog</title>
+  </head>
+  <body>
+
+  <script type="text/javascript">
+	$(document).ready(function() { 
+		$("#addEntry").colorbox({ inline:true, width:"33%"});
+
+		$.ajax({
+			url: "/rest/vehicles/1/mileage",
+			timeout: 3000,
+			success : function(mileage) {
+				new Chart(document.getElementById("mileageChart"), {
+					type: 'line',
+					data: {
+						labels: mileage.map(function(entry) {
+							return new Date(entry.toDate);
+						}),
+						datasets: [{
+							data: mileage.map(function(entry) {
+								if(entry.gallons == 0) {
+									return null;
+								}
+								return Math.round(10.0 * entry.tripMileage / entry.gallons) / 10.0;
+							}),
+							label: "MPG",
+							yAxisID: "mpgAxis",
+							fill: false,
+							borderColor: "#f00",
+							backgroundColor: "#d00"
+						}, {
+							data: mileage.map(function(entry) {
+								if(entry.tripMileage == 0) {
+									return null;
+								}
+								return Math.round( 1000.0 * (entry.gallons * entry.pricePerGallon) / entry.tripMileage) / 1000.0;
+							}),
+							label: "PPM",
+							yAxisID: "ppmAxis",
+							fill: false,
+							borderColor: "#00f",
+							backgroundColor: "#00d"
+						}]
+					},
+					options: {
+						scales: {
+							xAxes: [{
+								time: [{
+									unit: 'month'
+								}],
+								position: "bottom",
+								scaleLabel: {
+									display: true,
+									labelString: "Date"
+								},
+								display: false
+							}],
+							yAxes: [{
+								"id": "mpgAxis",
+								position: "left",
+								scaleLabel: {
+									display: true,
+									labelString: "MPG (mi/gal)"
+								}
+							}, {
+								"id": "ppmAxis",
+								position: "right",
+								scaleLabel: {
+									display: true,
+									labelString: "PPM ($/mi)"
+								}
+							}]
+						}
+					}
+				});
+
+				totalEA = mileage.reduce(function(acc, entry) { return acc + entry.pricePerGallon * entry.gallons }, 0.0);
+				totalMileage = mileage.reduce(function(acc, entry) { return acc + entry.tripMileage }, 0.0);
+				totalGallons = mileage.reduce(function(acc, entry) { return acc + entry.gallons }, 0.0);
+
+				totalEA = Math.round(100.0 * totalEA) / 100.0
+				totalMileage = Math.round(totalMileage)
+				totalGallons = Math.round(totalGallons)
+
+				html = "<table>"
+				html += "<tr><th>From</th><th>To</th><th>Trip (mi)</th><th>Fuel (gal)</th><th>PPG ($/gal)</th><th>EA ($)</th><th>MPG (mi/gal)</th><th>PPM ($/mi)</th></tr>";
+				html += "<tr><td>Totals</td><td></td><td>" + totalMileage + "</td><td>" + totalGallons + "</td><td></td><td>" + totalEA + "</td><td></td><td></td></tr>";
+				html += "<tr><td>Averages</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>";
+				for (var i = 0, len = mileage.length; i < len; ++i) {
+					entry = mileage[i];
+					html += "<tr>";
+					html += "<td>" + entry.fromDate + "</td>";
+					html += "<td>" + entry.toDate + "</td>";
+					html += "<td>" + entry.tripMileage + "</td>";
+					html += "<td>" + entry.gallons + "</td>";
+					html += "<td>" + entry.pricePerGallon + "</td>";
+					html += "<td>" + (Math.round(100.0 * entry.gallons * entry.pricePerGallon) / 100.0) + "</td>";
+					html += "<td>" + (Math.round(10.0 * entry.tripMileage / entry.gallons) / 10.0) + "</td>";
+					html += "<td>" + (Math.round(1000.0 * entry.gallons * entry.pricePerGallon / entry.tripMileage) / 1000.0) + "</td>";
+					html += "</tr>";
+
+				}
+				html += "</table>"
+
+				$(html).appendTo("#mileage")
+			},
+			fail : function() {
+				$("#messageBox").text("Failed to load mileage information");
+			}
+		});
+	});
+  </script>
+
+  <div class="container showgrid">
+    <div class="span-4">
+      <h1>Car Log</h1>
+    </div>
+    <div class="span-20 last" style="text-align:right;">
+      <a href="">Vehicles</a> | <a href="">Settings</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="span-18">
+      <a href="index.html">Dashboard</a> | <a href="mileage.html">Mileage</a> | <a href="maintenance.html">Maintenance</a> | <a href="events.html">Events</a>
+    </div>
+
+    <div class="span-6 last" style="text-align:right;">
+      <a id="exportCsv" href=""><img src="img/fugue/document-excel-csv.png" /> Export CSV</a> 
+    | <a id="addEntry" href="#inline_content"><img src="img/fugue/plus-circle.png" /> Add Entry</a>
+    </div>
+
+    <div id="messageBox" class="span-24 last"></div>
+
+    <canvas id="mileageChart" width="925" height="325"></canvas>
+
+    <div id="mileage" class="span-24 last"></div>
+  </div>
+
+
+  <div style="display:none;">
+    <div id="inline_content" style="padding: 10px; background:#fff;">
+      <form>
+        <fieldset>
+          <legend>Record Mileage</legend>
+          <table class="grid">
+            <tr>
+              <td><label for="from">From</label></td>
+              <td><input name="from" id="from" type="date" /></td>
+            </tr>
+            <tr>
+              <td><label for="to">To</label></td>
+              <td><input name="to" id="to" type="date" /></td>
+            </tr>
+            <tr>
+              <td><label for="tripMileage">Trip Mileage</label></td>
+              <td><input name="tripMileage" id="tripMileage" type="number" /></td>
+            </tr>
+            <tr>
+              <td><label for="gallons">Gallons</label></td>
+              <td><input name="gallons" id="gallons" type="number" /></td>
+            </tr>
+            <tr>
+              <td><label for="pricePerGallon">Price Per Gallon</label></td>
+              <td><input name="pricePerGallon" id="pricePerGallon" type="number" /> </td>
+            </tr>
+            <tr>
+              <td><label for="destinationId">Destination</label></td>
+              <td>
+                <select id="destinationId" name="destinationId">
+                  <option value="0">New Destination...</option>
+                </select>
+              </td>
+            </tr>
+          </table>
+        </fieldset>
+        <div style="text-align: right;">
+          <button type="reset">Reset</button>
+          <button type="submit" onclick="addEntry();" >Submit</button>
+        </div>
+      </form> 
+    </div>
+  </div>
+</html>

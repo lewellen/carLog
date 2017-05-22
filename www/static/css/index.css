@@ -1,0 +1,9 @@
+.tile {
+	text-align: center;
+	height: 128px;
+	border: 1px solid black;
+	background-color: #edf;
+	margin: 2px;
+}
+
+table.grid tbody tr:nth-child(even) td, table.grid tbody tr.even td {background:#fff;}

@@ -298,7 +298,7 @@ class CarLogDB:
 				"id" : int(operator.itemgetter(0)(result)),
 				"vehicleId" : int(operator.itemgetter(1)(result)),
 				"providerId" : int(operator.itemgetter(2)(result)),
-				"at": datetime.datetime.strptime(operator.itemgetter(3)(result), "%Y-%m-%d"),
+				"at": datetime.datetime.strptime(operator.itemgetter(3)(result), "%Y-%m-%d %H:%M:%S"),
 				"primaryContact" : operator.itemgetter(4)(result),
 				"phoneNumber" : operator.itemgetter(5)(result),
 				"description" : operator.itemgetter(6)(result),
@@ -308,7 +308,6 @@ class CarLogDB:
 		return data
 
 	def getAllVehicleMileage(self, vehicleId):
-		print ">>", vehicleId
 		c = self.conn.cursor()
 		c.execute("select id, vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, totalMileage, gallons, pricePerGallon from mileageEntries where vehicleId = ?", vehicleId)
 		results = c.fetchall()
@@ -321,8 +320,8 @@ class CarLogDB:
 				"providerId" : int(operator.itemgetter(2)(result)),
 				"destinationId" : int(operator.itemgetter(3)(result)),
 
-				"fromDate": datetime.datetime.strptime(operator.itemgetter(4)(result), "%Y-%m-%d"),
-				"toDate": datetime.datetime.strptime(operator.itemgetter(5)(result), "%Y-%m-%d"),
+				"fromDate": datetime.datetime.strptime(operator.itemgetter(4)(result), "%Y-%m-%d %H:%M:%S"),
+				"toDate": datetime.datetime.strptime(operator.itemgetter(5)(result), "%Y-%m-%d %H:%M:%S"),
 				"tripMileage": float(operator.itemgetter(6)(result)),
 				"totalMileage" : float(operator.itemgetter(7)(result)),
 				"gallons": float(operator.itemgetter(8)(result)),
@@ -342,7 +341,7 @@ class CarLogDB:
 				"id" : int(operator.itemgetter(0)(result)),
 				"vehicleId" : int(operator.itemgetter(1)(result)),
 
-				"at": datetime.datetime.strptime(operator.itemgetter(2)(result), "%Y-%m-%d"),
+				"at": datetime.datetime.strptime(operator.itemgetter(2)(result), "%Y-%m-%d %H:%M:%S"),
 				"totalMileage" : operator.itemgetter(3)(result),
 				"description": operator.itemgetter(4)(result),
 			})
