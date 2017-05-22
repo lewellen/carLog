@@ -20,7 +20,43 @@
 
   <script type="text/javascript">
 	$(document).ready(function() { 
-		$("#addEntry").colorbox({ inline:true, width:"33%"});
+		$(".submit").click(function(e) {
+			e.preventDefault();
+
+			formArray = $('form').serializeArray();
+			var obj = { };
+			for(var i = 0, len = formArray.length; i < len; ++i) {
+				obj[formArray[i]["name"]] = formArray[i]["value"];
+			}
+
+			$.ajax({
+				type : "POST",
+				url : this.href,
+				data : JSON.stringify(obj),
+				contentType: "application/json",
+				success : function(result) {
+					if(result.id == null) {
+						$("#formMessageBox").text(result.msg);
+						$("#formMessageBox").addClass("notice");
+					} else {
+						$("#messageBox").text("Success!");
+						$("#messageBox").addClass("success");
+						$.colorbox.close();
+					}
+				},
+				fail : function(result) {
+					$("#formMessageBox").text(result.msg);
+					$("#formMessageBox").addClass("error");
+				}
+			});
+		});
+
+		$("#addEntry").colorbox({
+			inline : true,
+			onClosed : function() {
+				location.reload();
+			}
+		});
 
 		$.ajax({
 			url: "/rest/vehicles/1/mileage",
@@ -124,6 +160,28 @@
 				$("#messageBox").text("Failed to load mileage information");
 			}
 		});
+
+		$.ajax({
+			url : "rest/providers",
+			timeout: 3000,
+			success : function(providers) {
+				providerSelect = $("#providerId");
+				for(var i = 0, len = providers.length; i < len; ++i) {
+					$("<option value=\"" + providers[i].id + "\">" + providers[i].name + "</option>").appendTo(providerSelect);
+				}
+			}
+		});
+
+		$.ajax({
+			url : "rest/destinations",
+			timeout: 3000,
+			success : function(destinations) {
+				destSelect = $("#destinationId");
+				for(var i = 0, len = destinations.length; i < len; ++i) {
+					$("<option value=\"" + destinations[i].id + "\">" + destinations[i].name + "</option>").appendTo(destSelect);
+				}
+			}
+		});
 	});
   </script>
 
@@ -153,24 +211,29 @@
     <div id="mileage" class="span-24 last"></div>
   </div>
 
-
   <div style="display:none;">
     <div id="inline_content" style="padding: 10px; background:#fff;">
+      <div id="formMessageBox" style="display:block;"></div>
+
       <form>
         <fieldset>
           <legend>Record Mileage</legend>
           <table class="grid">
             <tr>
-              <td><label for="from">From</label></td>
-              <td><input name="from" id="from" type="date" /></td>
+              <td><label for="fromDate">From</label></td>
+              <td><input name="fromDate" id="fromDate" type="date" /></td>
             </tr>
             <tr>
-              <td><label for="to">To</label></td>
-              <td><input name="to" id="to" type="date" /></td>
+              <td><label for="toDate">To</label></td>
+              <td><input name="toDate" id="toDate" type="date" /></td>
             </tr>
             <tr>
               <td><label for="tripMileage">Trip Mileage</label></td>
               <td><input name="tripMileage" id="tripMileage" type="number" /></td>
+            </tr>
+            <tr>
+              <td><label for="totalMileage">Odometer</label></td>
+              <td><input name="totalMileage" id="totalMileage" type="number" /></td>
             </tr>
             <tr>
               <td><label for="gallons">Gallons</label></td>
@@ -181,6 +244,14 @@
               <td><input name="pricePerGallon" id="pricePerGallon" type="number" /> </td>
             </tr>
             <tr>
+              <td><label for="providerId">Gas Station</label></td>
+              <td>
+                <select id="providerId" name="providerId">
+                  <option value="0">New Gas Station...</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
               <td><label for="destinationId">Destination</label></td>
               <td>
                 <select id="destinationId" name="destinationId">
@@ -189,10 +260,10 @@
               </td>
             </tr>
           </table>
+          <input name="vehicleId" id="vehicleId" type="hidden" value="1" />
         </fieldset>
         <div style="text-align: right;">
-          <button type="reset">Reset</button>
-          <button type="submit" onclick="addEntry();" >Submit</button>
+          <a class="submit" href="rest/mileage">Submit</a>
         </div>
       </form> 
     </div>
