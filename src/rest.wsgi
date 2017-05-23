@@ -4,7 +4,7 @@ import os.path
 from flask import Flask, request, jsonify
 from dao import CarLogDB
 
-DB_PATH = "/var/www/carLog/carLog.db"
+DB_PATH = "/var/www/carLog/db/carLog.db"
 
 application = Flask(__name__)
 

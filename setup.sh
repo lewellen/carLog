@@ -1,10 +1,15 @@
 #!/bin/bash
 
-DBPATH=www/carLog.db
+DBPATH=www/db/carLog.db
 
 rm -rf $DBPATH
 
 sqlite3 $DBPATH < db/createDb.sql
+chown www-data:www-data $DBPATH
+chmod g+w $DBPATH
+
+chown www-data:www-data www/db
+chmod g+w www/db
 
 if [ -f db/populateDb.sql ]; then
 	sqlite3 $DBPATH < db/populateDb.sql
