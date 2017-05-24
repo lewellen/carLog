@@ -6,11 +6,15 @@
     <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection">
     <![endif]-->
 
+    <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css"> 
+ 
     <link rel="stylesheet" href="css/index.css" type="text/css"> 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
     <title>CarLog</title>
   </head>
   <body>
@@ -21,21 +25,12 @@
 			url : "/rest/vehicles/1/events",
 			timeout: 3000,
 			success : function(events) {
-				console.log(events);
-
-				html = "<table>"
-				html += "<tr><th>Date</th><th>Description</th><th>Odometer (mi)</th><tr>"
-				for (var i = 0, len = events.length; i < len; ++i) {
-					entry = events[i];
-					html += "<tr>"
-					html += "<td>" + entry.at + "</td>"
-					html += "<td>" + entry.description + "</td>"
-					html += "<td>" + entry.totalMileage + "</td>"
-					html += "</tr>"
-				}
-				html += "</table>"
-
-				$(html).appendTo("#events")
+				new Vue({
+					el: "#events",
+					data : {
+						entries : events,
+					}
+				});
 			},
 			fail : function() {
 				$("#messageBox").text("Failed to load events");
@@ -64,6 +59,29 @@
 
     <div id="messageBox" class="span-24 last"></div>
 
-    <div id="events" class="span-24 last"></div>
+    <div id="events" class="span-24 last">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Odometer (mi)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="editableRow" v-for="entry in entries">
+            <td style="width:16px;"><a class="edit" v-bind:href="'/rest/events/' + entry.id" style="display:none;"><img src="img/fugue/pencil.png" /></a></td>
+            <td>{{ entry.at }}</td>
+            <td>{{ entry.description }}</td>
+            <td>{{ entry.totalMileage }}</td>
+            <td style="width:16px;"><a class="remove" v-bind:href="'/rest/events/' + entry.id" style="display:none;"><img src="img/fugue/minus-circle.png" /></a></td>
+          </tr>
+        </tbody>
+        <tfoot>
+        </tfoot>
+      </table>
+    </div>
   </div>
 </html>

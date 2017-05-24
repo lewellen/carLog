@@ -8,18 +8,20 @@
 
     <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css"> 
  
-   <link rel="stylesheet" href="css/index.css" type="text/css"> 
+    <link rel="stylesheet" href="css/index.css" type="text/css"> 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
     <title>CarLog</title>
   </head>
   <body>
 
   <script type="text/javascript">
-	$(document).ready(function() { 
+	$(document).ready(function() {
+
 		$(".submit").click(function(e) {
 			e.preventDefault();
 
@@ -134,27 +136,56 @@
 				totalMileage = Math.round(totalMileage)
 				totalGallons = Math.round(totalGallons)
 
-				html = "<table>"
-				html += "<tr><th>From</th><th>To</th><th>Trip (mi)</th><th>Fuel (gal)</th><th>PPG ($/gal)</th><th>EA ($)</th><th>MPG (mi/gal)</th><th>PPM ($/mi)</th></tr>";
-				html += "<tr><td>Totals</td><td></td><td>" + totalMileage + "</td><td>" + totalGallons + "</td><td></td><td>" + totalEA + "</td><td></td><td></td></tr>";
-				html += "<tr><td>Averages</td><td></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>";
-				for (var i = 0, len = mileage.length; i < len; ++i) {
-					entry = mileage[i];
-					html += "<tr>";
-					html += "<td>" + entry.fromDate + "</td>";
-					html += "<td>" + entry.toDate + "</td>";
-					html += "<td>" + entry.tripMileage + "</td>";
-					html += "<td>" + entry.gallons + "</td>";
-					html += "<td>" + entry.pricePerGallon + "</td>";
-					html += "<td>" + (Math.round(100.0 * entry.gallons * entry.pricePerGallon) / 100.0) + "</td>";
-					html += "<td>" + (Math.round(10.0 * entry.tripMileage / entry.gallons) / 10.0) + "</td>";
-					html += "<td>" + (Math.round(1000.0 * entry.gallons * entry.pricePerGallon / entry.tripMileage) / 1000.0) + "</td>";
-					html += "</tr>";
+				new Vue({
+					el: "#mileage",
+					data : {
+						entries : mileage,
+						totalEA : totalEA,
+						totalMileage : totalMileage,
+						totalGallons : totalGallons
+					}
+				});
 
-				}
-				html += "</table>"
+				$(".editableRow")
+					.mouseenter(function() {
+						$(this).find(".edit").show();
+						$(this).find(".remove").show();
+					})
+					.mouseleave(function() {
+						$(this).find(".edit").hide();
+						$(this).find(".remove").hide();
+					});
 
-				$(html).appendTo("#mileage")
+				$(".edit").colorbox({
+					inline: true,
+					onLoad: function() {
+						$(this).html("Hello world!");
+					},
+					onClosed : function() {
+						location.reload();
+					}
+				});
+
+				$(".remove").click(function(e) {
+					e.preventDefault();
+
+					var confirmed = confirm("Are you sure you want to remove this record?");
+					if(!confirmed) {
+						return;
+					}
+
+					$.ajax({
+						method : "DELETE",
+						url : "/rest/mileage",
+						success : function(result) {
+
+						},
+						fail : function(result) {
+
+						}
+					});
+				});
+
 			},
 			fail : function() {
 				$("#messageBox").text("Failed to load mileage information");
@@ -201,18 +232,51 @@
 
     <div class="span-6 last" style="text-align:right;">
       <a id="exportCsv" href=""><img src="img/fugue/document-excel-csv.png" /> Export CSV</a> 
-    | <a id="addEntry" href="#inline_content"><img src="img/fugue/plus-circle.png" /> Add Entry</a>
+    | <a id="addEntry" href="#mileageForm"><img src="img/fugue/plus-circle.png" /> Add Entry</a>
     </div>
 
     <div id="messageBox" class="span-24 last"></div>
 
     <canvas id="mileageChart" width="925" height="325"></canvas>
 
-    <div id="mileage" class="span-24 last"></div>
+    <div id="mileage" class="span-24 last">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>From</th>
+            <th>To</th>
+            <th>Trip (mi)</th>
+            <th>Fuel (gal)</th>
+            <th>PPG ($/gal)</th>
+            <th>EA ($)</th>
+            <th>MPG (mi/gal)</th>
+            <th>PPM ($/mi)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="editableRow" v-for="entry in entries">
+            <td style="width:16px;"><a class="edit" v-bind:href="'/rest/mileage/' + entry.id" style="display:none;"><img src="img/fugue/pencil.png" /></a></td>
+            <td>{{ entry.fromDate }}</td>
+            <td>{{ entry.toDate }}</td>
+            <td>{{ entry.tripMileage }}</td>
+            <td>{{ entry.gallons }}</td>
+            <td>{{ entry.pricePerGallon }}</td>
+            <td>{{ (Math.round(100.0 * entry.gallons * entry.pricePerGallon) / 100.0) }}</td>
+            <td>{{ (Math.round(10.0 * entry.tripMileage / entry.gallons) / 10.0) }}</td>
+            <td>{{ (Math.round(1000.0 * entry.gallons * entry.pricePerGallon / entry.tripMileage) / 1000.0) }}</td>
+            <td style="width:16px;"><a class="remove" v-bind:href="'/rest/mileage/' + entry.id" style="display:none;"><img src="img/fugue/minus-circle.png" /></a></td>
+          </tr>
+        </tbody>
+        <tfoot>
+        </tfoot>
+      </table>
+    </div>
   </div>
 
   <div style="display:none;">
-    <div id="inline_content" style="padding: 10px; background:#fff;">
+    <div id="mileageForm" style="padding: 10px; background:#fff;">
       <div id="formMessageBox" style="display:block;"></div>
 
       <form>

@@ -1,12 +1,24 @@
 import sys
 import os.path
+import datetime
 
 from flask import Flask, request, jsonify
+from flask.json import JSONEncoder
 from dao import CarLogDB
 
 DB_PATH = "/var/www/carLog/db/carLog.db"
 
+class CustomJSONEncoder(JSONEncoder):
+	def default(self, obj):
+		if isinstance(obj, datetime.datetime):
+			try:
+				return obj.strftime("%Y-%m-%d")
+			except ValueError:
+				return "%0.4d-%0.2d-%0.2d" % (obj.year, obj.month, obj.day)
+		return JSONEncoder.default(obj)
+
 application = Flask(__name__)
+application.json_encoder = CustomJSONEncoder
 
 # Users -----------------------------------------------------------------------
 
