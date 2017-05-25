@@ -1,0 +1,169 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection"/>
+    <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print" /> 
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection" />
+    <![endif]-->
+
+    <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css" /> 
+ 
+    <link rel="stylesheet" href="css/index.css" type="text/css" /> 
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+
+    <script src="js/crud.js"></script> 
+    <script src="js/figures.js"></script> 
+
+    <title>CarLog</title>
+  </head>
+  <body>
+
+  <script type="text/javascript">
+	$(document).ready(function() {
+		bindAdd("#vehiclesForm", {
+			id : -1,
+			userId : 1,
+			vin : "",
+			make : "",
+			model : "",
+			year : (new Date()).year,
+			stillOwn : true
+		});
+
+		bindSubmit("/rest/vehicles");
+
+		$.ajax({
+			method : "GET",
+			url : "/rest/users/1/vehicles",
+			success : function(results) {
+				new Vue({
+					el : "#vehiclesTable",
+					data : {
+						entries : results
+					}
+				});
+			},
+			fail : function(result) {
+				$("#messageBox").html(result);
+			}
+		});
+
+		$.ajax({
+			url : "rest/users",
+			timeout: 3000,
+			success : function(results) {
+				new Vue({
+					el: "#userId",
+					data : {
+						entries : results
+					}
+				});
+			}
+		});
+	});
+  </script>
+
+  <div class="container">
+    <div class="span-6" style="font-weight:bold;">
+      <img width="32" height="32" src="img/car.png" class="icon" /> carlog 
+    </div>
+    <div class="span-18 last" style="text-align:right;">
+      <a href="settings.html"><img src="img/fugue/gear.png" class="icon" /> Settings</a>
+    </div>
+  </div>
+
+  <div class="container" style="border-top: 1px solid #666; border-bottom:1px solid #ccc; margin-top:6px; margin-bottom: 8px; padding: 3px; ">
+    <div class="span-18">
+      <a href="users.html"><img src="img/fugue/user-silhouette.png" class="icon" /> Users</a> | 
+      <a href="vehicles.html"><img src="img/fugue/car.png" class="icon" /> Vehicles</a> | 
+      <a href="destinations.html"><img src="img/fugue/marker.png" class="icon" /> Destinations</a> | 
+      <a href="providers.html"><img src="img/fugue/card-address.png" class="icon" /> Providers</a>
+    </div>
+
+    <div class="span-6 last" style="text-align:right;">
+      <a id="addEntry"><img src="img/fugue/plus-circle.png"/> Add Entry</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="vehiclesTable">
+      <table>
+        <thead>
+          <th></th>
+          <th>ID</th>
+          <th>User ID</th>
+          <th>VIN</th>
+          <th>Make</th>
+          <th>Model</th>
+          <th>Year</th>
+          <th>Still Own</th>
+          <th></th>
+        </thead>
+        <tbody>
+          <tr v-for="entry in entries">
+            <td></td>
+            <td>{{ entry.id }}</td>
+            <td>{{ entry.userId }}</td>
+            <td>{{ entry.vin }}</td>
+            <td>{{ entry.make }}</td>
+            <td>{{ entry.model }}</td>
+            <td>{{ entry.year }}</td>
+            <td>{{ entry.stillOwn }}</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="display:none;">
+    <div id="vehiclesForm" style="padding: 10px; background:#fff;">
+      <div id="formMessageBox" style="display:block;"></div>
+
+      <form>
+        <fieldset>
+          <legend><img class="icon" src="img/fugue/car.png" /> Vehicle</legend>
+          <table class="grid">
+            <tr>
+              <td><label for="vin">VIN</label></td>
+              <td><input name="vin" id="vin" maxlength="256" v-bind:value="vin" /></td>
+            </tr>
+            <tr>
+              <td><label for="make">Make</label></td>
+              <td><input name="make" id="make" maxlength="256" v-bind:value="make" /></td>
+            </tr>
+            <tr>
+              <td><label for="model">Model</label></td>
+              <td><input name="model" id="model" maxlength="256" v-bind:value="model" /></td>
+            </tr>
+            <tr>
+              <td><label for="year">Year</label></td>
+              <td><input name="year" id="year" type="number" v-bind:value="year" /></td>
+            </tr>
+            <tr>
+              <td><label for="userId">User</label></td>
+              <td>
+                <select id="userId" name="userId">
+		  <option v-for="entry in entries" v-bind:value="entry.id">{{ entry.name }}</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td><label for="stillOwn">Currently Own</label></td>
+              <td><input name="stillOwn" id="stillOwn" type="checkbox" v-bind:value="stillOwn" /></td>
+            </tr>
+          </table>
+          <input name="id" id="id" type="hidden" v-bind:value="id" />
+        </fieldset>
+        <div style="text-align: right;">
+          <a class="submit">Submit</a>
+        </div>
+      </form> 
+    </div>
+  </div>
+</html>
