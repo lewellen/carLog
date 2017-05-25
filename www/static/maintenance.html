@@ -1,91 +1,195 @@
 <html>
   <head>
-    <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection">
-    <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print"> 
+    <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection"/>
+    <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print" /> 
     <!--[if lt IE 8]>
-    <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection">
+    <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection" />
     <![endif]-->
 
-    <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css"> 
+    <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css" /> 
  
-    <link rel="stylesheet" href="css/index.css" type="text/css"> 
+    <link rel="stylesheet" href="css/index.css" type="text/css" /> 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+
+    <script src="js/crud.js"></script> 
+    <script src="js/figures.js"></script> 
+
     <title>CarLog</title>
   </head>
   <body>
 
   <script type="text/javascript">
-	$(document).ready(function() { 
+	$(document).ready(function() {
+		bindAdd("#maintenanceForm", {
+			vehicleId : 1,
+			providerId : 1,
+			at : new Date(),
+			primaryContact : "",
+			phoneNumber : "",
+			description : "",
+			cost : 0
+		});
+
+		bindSubmit("/rest/maintenance");
+
 		$.ajax({
-			url : "/rest/vehicles/1/maintenance",
+			url: "/rest/vehicles/1/maintenance",
 			timeout: 3000,
 			success : function(maintenance) {
 				new Vue({
-					el: "#maintenance",
+					el: "#maintenanceTable",
 					data : {
-						entries : maintenance,
+						entries : maintenance
 					}
 				});
+
+				$(".editableRow")
+					.mouseenter(function() {
+						$(this).find(".edit").show();
+						$(this).find(".remove").show();
+					})
+					.mouseleave(function() {
+						$(this).find(".edit").hide();
+						$(this).find(".remove").hide();
+					});
+
+				bindEdit("#maintenanceForm", "/rest/maintenance");
+
+				bindRemove("/rest/maintenance");
 			},
 			fail : function() {
-				$("#messageBox").text("Failed to load maintenance");
+				$("#messageBox").text("Failed to load maintenance information");
+			}
+		});
+
+		$.ajax({
+			url : "rest/providers",
+			timeout: 3000,
+			success : function(providers) {
+				new Vue({
+					el: "#providerId",
+					data : {
+						entries : providers
+					}
+				});
 			}
 		});
 	});
   </script>
 
-  <div class="container showgrid">
-    <div class="span-4">
-      <h1>Car Log</h1>
+  <div class="container">
+    <div class="span-6" style="font-weight:bold;">
+      <img width="32" height="32" src="img/car.png" class="icon" /> carlog 
     </div>
-    <div class="span-20 last" style="text-align:right;">
-      <a href="">Vehicles</a> | <a href="">Settings</a>
+    <div class="span-18 last" style="text-align:right;">
+      <a href="vehicles.html"><img class="icon" src="img/fugue/car.png" /> Vehicles</a> | 
+      <a href="settings.html"><img src="img/fugue/gear.png" class="icon" /> Settings</a>
     </div>
-
   </div>
 
-  <div class="container">
-    <div class="span-18 last">
-      <a href="index.html">Dashboard</a> | <a href="mileage.html">Mileage</a> | <a href="maintenance.html">Maintenance</a> | <a href="events.html">Events</a>
+  <div class="container" style="border-top: 1px solid #666; border-bottom:1px solid #ccc; margin-top:6px; margin-bottom: 8px; padding: 3px; ">
+    <div class="span-18">
+      <a href="index.html"><img src="img/fugue/dashboard.png" class="icon" /> Dashboard</a> | 
+      <a href="mileage.html"><img src="img/fugue/counter.png" class="icon" /> Mileage</a> | 
+      <a href="maintenance.html"><img src="img/fugue/wrench.png" class="icon" /> Maintenance</a> | 
+      <a href="events.html"><img src="img/fugue/sticky-note.png" class="icon" /> Events</a>
     </div>
 
     <div class="span-6 last" style="text-align:right;">
-      <a href=""><img src="img/fugue/document-excel-csv.png" /> Export CSV</a> | <a href=""><img src="img/fugue/plus-circle.png" /> Add Entry</a>
+      <a id="exportCsv" href="/rest/vehicle/1/maintenance/export"><img src="img/fugue/document-excel-csv.png" class="icon" /> Export CSV</a>
+      <a id="addEntry"><img src="img/fugue/plus-circle.png" class="icon" /> Add Entry</a>
     </div>
+  </div>
 
+  <div class="container">
     <div id="messageBox" class="span-24 last"></div>
-    <div id="maintenance">i
+
+    <div id="maintenanceTable" class="span-24 last">
       <table>
         <thead>
           <tr>
             <th></th>
             <th>Date</th>
+            <th>Mechanic</th>
+            <th>Contact</th>
+            <th>Phone Number</th>
+            <th>Cost ($)</th>
             <th>Description</th>
-            <th>Cost ($)</th> 
-            <th>Contact</th> 
-            <th>Phone Number</th> 
             <th></th>
           </tr>
         </thead>
         <tbody>
           <tr class="editableRow" v-for="entry in entries">
-            <td style="width:16px;"><a class="edit" v-bind:href="'/rest/maintenance/' + entry.id" style="display:none;"><img src="img/fugue/pencil.png" /></a></td>
+            <td style="width:16px;"><a class="edit" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/pencil.png" /></a></td>
             <td>{{ entry.at }}</td>
-            <td>{{ entry.description }}</td>
-            <td>{{ entry.cost }}</td>
+            <td>{{ entry.providerId }}</td>
             <td>{{ entry.primaryContact }}</td>
             <td>{{ entry.phoneNumber }}</td>
-            <td style="width:16px;"><a class="remove" v-bind:href="'/rest/maintenance/' + entry.id" style="display:none;"><img src="img/fugue/minus-circle.png" /></a></td>
+            <td>{{ entry.cost }}</td>
+            <td>{{ entry.description }}</td>
+            <td style="width:16px;"><a class="remove" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/minus-circle.png" /></a></td>
           </tr>
         </tbody>
         <tfoot>
         </tfoot>
       </table>
+    </div>
+
+    <hr />
+
+    <div style="color: #666666; text-align:center;">
+      &copy; 2017-Present Lewellen <img src="img/fugue/creative-commons.png" /> Attribution-NonCommercial-NoDerivs CC BY-NC-ND
+    </div>
+  </div>
+
+  <div style="display:none;">
+    <div id="maintenanceForm" style="padding: 10px; background:#fff;">
+      <div id="formMessageBox" style="display:block;"></div>
+
+      <form>
+        <fieldset>
+          <legend><img src="img/fugue/wrench.png" /> Record Maintenance</legend>
+          <table class="grid">
+            <tr>
+              <td><label for="at">Date</label></td>
+              <td><input name="at" id="at" type="date" v-bind:value="at" /></td>
+            </tr>
+            <tr>
+              <td><label for="providerId">Mechanic</label></td>
+              <td>
+                <select id="providerId" name="providerId">
+		  <option v-for="entry in entries" v-bind:value="entry.id">{{ entry.name }}</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td><label for="primaryContact">Contact</label></td>
+              <td><input name="primaryContact" id="primaryContact" maxlength="256" v-bind:value="primaryContact" /></td>
+            </tr>
+            <tr>
+              <td><label for="phoneNumber">Phone</label></td>
+              <td><input name="phoneNumber" id="phoneNumber" maxlength="256" type="tel" v-bind:value="phoneNumber" /></td>
+            </tr>
+            <tr>
+              <td><label for="cost">Cost</label></td>
+              <td><input name="cost" id="cost" type="number" v-bind:value="cost" /></td>
+            </tr>
+            <tr>
+              <td><label for="description">Description</label></td>
+              <td><input name="description" id="description" v-bind:value="description" /></td>
+            </tr>
+          </table>
+          <input name="vehicleId" id="vehicleId" type="hidden" v-bind:value="vehicleId" />
+        </fieldset>
+        <div style="text-align: right;">
+          <a class="submit">Submit</a>
+        </div>
+      </form> 
     </div>
   </div>
 </html>

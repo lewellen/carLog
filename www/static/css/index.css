@@ -6,4 +6,15 @@
 	margin: 2px;
 }
 
+.icon {
+	vertical-align: middle;
+	margin: 2px;
+}
+
+a, a:hover {
+	cursor: pointer;
+	text-decoration: none;
+}
+
 table.grid tbody tr:nth-child(even) td, table.grid tbody tr.even td {background:#fff;}
+
