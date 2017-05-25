@@ -25,18 +25,7 @@
 
   <script type="text/javascript">
 	$(document).ready(function() {
-		$.ajax({
-			url : "rest/users/1/vehicles",
-			timeout: 3000,
-			success : function(results) {
-				new Vue({
-					el: "#vehicles",
-					data : {
-						entries : results
-					}
-				});
-			}
-		});
+
 	});
   </script>
 
@@ -47,35 +36,20 @@
     <div class="span-18 last" style="text-align:right;">
       <a href="settings.html"><img src="img/fugue/gear.png" class="icon" /> Settings</a>
     </div>
-
-    <hr />
   </div>
 
-  <div id="vehicles" class="container">
-    <div class="span-24 last">  
-      <h2>Your Garage</h2>
-    </div>
-    <div class="span-8" style="border: 1px solid #ccc; padding: 8px; background-color:#eee;" v-for="entry in entries">
-      <div class="span-2">
-        <img class="icon" width="48" height="48" src="img/car.png" />
-      </div>
-      <div class="span-6 last">
-        <h3><a href="dashboard.html">{{entry.year}} {{entry.make}} {{entry.model}}</a></h3>
-        <ul>
-          <li><a href="mileage.html">Mileage</a></li>
-          <li><a href="maintenance.html">Maintenance</a></li>
-          <li><a href="events.html">Event</a></li>
-        </ul>
-      </div>
+  <div class="container" style="border-top: 1px solid #666; border-bottom:1px solid #ccc; margin-top:6px; margin-bottom: 8px; padding: 3px; ">
+    <div class="span-18">
+      <a href="dashboard.html"><img src="img/fugue/dashboard.png" class="icon" /> Dashboard</a> | 
+      <a href="mileage.html"><img src="img/fugue/counter.png" class="icon" /> Mileage</a> | 
+      <a href="maintenance.html"><img src="img/fugue/wrench.png" class="icon" /> Maintenance</a> | 
+      <a href="events.html"><img src="img/fugue/sticky-note.png" class="icon" /> Events</a>
     </div>
 
-    <div class="span-8" style="border: 1px solid #ccc; padding: 8px; background-color:#eee;" v-for="entry in entries">
-      <div class="span-2">
-        <img class="icon" width="48" height="48" src="img/car.png" />
-      </div>
-      <div class="span-6 last">
-        <h3><a href="vehicles.html">Add Vehicle</a></h3>
-      </div>
+    <div class="span-6 last" style="text-align:right;">
     </div>
+  </div>
+
+  <div class="container">
   </div>
 </html>
