@@ -24,8 +24,137 @@
   <body>
 
   <script type="text/javascript">
-	$(document).ready(function() {
+	function round(x, numDigits) {
+		c = Math.pow(10, numDigits);
+		return Math.round(c * x) / c;
+	}
 
+	function tileBarChart(def) {
+		var ctx = document.getElementById(def.canvasId).getContext("2d");
+		var chart = new Chart(ctx, {
+			type: 'bar',
+			data : {
+				labels: def.binCenters.map(function(x) {
+					return round(x, def.numDigits)
+				}),
+				datasets: [{
+					data : def.binCounts,
+					yAxisID : "freqYAxis",
+					borderColor: "#333",
+					backgroundColor: "#999"
+				}, {
+					type : 'line',
+					data : def.fit,
+					yAxisID : "fitYAxis",
+					borderColor: "#f00",
+					fill: false,
+					pointRadius: 0
+				}]
+			},
+			options : {
+				legend: {
+					display: false
+				},
+				scales: {
+					xAxes: [{
+						gridLines: {
+							display: false
+						},
+						scaleLabel: {
+							labelString: def.xLabel,
+							display: true
+						}
+					}],
+					yAxes: [{
+						"id" : "freqYAxis",
+						position: "left",
+						scaleLabel: {
+							labelString: def.yLabel,
+							display: true
+						}
+					}, {
+						"id" : "fitYAxis",
+						position: "right",
+						display: false
+					}]
+				}
+			}
+		});
+	}
+
+	function populateCostSummaryTile(tileId, canvasId, data) {
+		data.total = round(data.total, 2);
+
+		new Vue({
+			el: tileId,
+			data : data
+		});
+
+		tileBarChart({
+			canvasId: canvasId,
+			binCenters: data.dateBins,
+			binCounts: data.dateTotals,
+			fit : null,
+			numDigits: 2,
+			xLabel: "Date",
+			yLabel: "Total ($)"
+		});
+	}
+
+	function populateEstimateTile(tileId, canvasId, data, xLabel, numDigits) {
+		data.params.loc = round(data.params.loc, numDigits);
+		data.params.interval[0] = round(data.params.interval[0], numDigits);
+		data.params.interval[1] = round(data.params.interval[1], numDigits);
+
+		new Vue({
+			el: tileId,
+			data : data.params
+		});
+
+		tileBarChart({
+			canvasId: canvasId,
+			binCenters: data.binCenters,
+			binCounts: data.binCounts,
+			fit : data.fit,
+			numDigits: numDigits,
+			xLabel: xLabel,
+			yLabel: "Frequency"
+		});
+	}
+	
+	$(document).ready(function() {
+		$.ajax({
+			method : "GET",
+			url : "/rest/vehicles/1/costSummary",
+			success : function(results) {
+				tileIds = ["#fuelCostSummary", "#maintenanceCostSummary"];
+				chartIds = ["fuelCostSummaryChart", "maintenanceCostSummaryChart"];
+				data = [results.fuel, results.maintenance];
+
+				for(var i = 0; i < 2; ++i) {
+					populateCostSummaryTile(tileIds[i], chartIds[i], data[i]);
+				}
+			}
+		});
+
+		$.ajax({
+			method : "GET",
+			url : "/rest/vehicles/1/estimates",
+			success : function(results) {
+				tileIds = ["#tankSize", "#mpg", "#range", "#ppm", "#fuelCosts", "#ppd"];
+				chartIds = ["tankSizeChart", "mpgChart", "rangeChart", "ppmChart", "fuelCostsChart", "ppdChart"];
+				xlabels = ["Refill (gal)", "Fuel Economy (mi/gal)", "Trip Distance (mi)", "Price Per Mile ($/mi)", "Extended Amount ($)", "Price Per Day ($/day)"];
+				data = [results.tank, results.mpg, results.range, results.ppm, results.fuelCosts, results.ppd];
+				numDigits = [ 1, 1, 1, 3, 2, 2];
+
+				for(var i = 0; i < 6; ++i) { 
+					populateEstimateTile(
+						tileIds[i], chartIds[i], data[i], xlabels[i],
+						numDigits[i]
+					);
+				}
+			}
+		});
 	});
   </script>
 
@@ -50,6 +179,72 @@
     </div>
   </div>
 
-  <div class="container">
+  <div id="dashboard" class="container">
+    <div class="span-24 last">
+      <h2>Cost Summary</h2>
+    </div>
+
+    <div class="span-24 last">
+      <div id="fuelCostSummary" class="span-12" style="text-align:center;">
+        <h3>Fuel</h3>
+        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">$ {{ total }}</div>
+        <canvas id="fuelCostSummaryChart" height="150"></canvas>
+      </div>
+      <div id="maintenanceCostSummary" class="span-12 last" style="text-align:center;">
+        <h3>Maintenance</h3>
+        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">$ {{ total }}</div>
+        <canvas id="maintenanceCostSummaryChart" height="150"></canvas>
+      </div>
+    </div>
+
+    <div class="span-24 last">
+      <h2>Vehicle Estimates</h2>
+    </div>
+
+    <div class="span-24 last">
+      <div id="tankSize" class="span-8" style="text-align:center;">
+        <h3>Tank Size</h3>
+        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
+        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">(gal)</span>
+        <canvas id="tankSizeChart" height="150"></canvas>
+      </div>
+      <div id="mpg" class="span-8" style="text-align:center;">
+        <h3>MPG</h3>
+        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
+        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">(mi/gal)</span>
+        <canvas id="mpgChart" height="150"></canvas>
+      </div>
+      <div id="range" class="span-8 last" style="text-align:center;">
+        <h3>Range</h3>
+        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
+        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">(mi)</span>
+        <canvas id="rangeChart" height="150"></canvas>
+      </div>
+    </div>
+
+    <div class="span-24 last">
+      <h2>Inferred Economy</h2>
+    </div>
+
+    <div class="span-24 last">
+      <div id="ppm" class="span-8" style="text-align:center;">
+        <h3>Price Per Mile</h3>
+        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
+        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">($/mi)</span>
+        <canvas id="ppmChart" height="150"></canvas>
+      </div>
+      <div id="fuelCosts" class="span-8" style="text-align:center;">
+        <h3>Fuel Costs</h3>
+        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
+        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">($)</span>
+        <canvas id="fuelCostsChart" height="150"></canvas>
+      </div>
+      <div id="ppd" class="span-8 last" style="text-align:center;">
+        <h3>Price Per Day</h3>
+        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
+        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">($/day)</span>
+        <canvas id="ppdChart" height="150"></canvas>
+      </div>
+    </div>
   </div>
 </html>

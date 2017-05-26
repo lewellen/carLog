@@ -6,6 +6,8 @@ from flask import Flask, request, jsonify
 from flask.json import JSONEncoder
 from dao import CarLogDB
 
+from exploratoryAnalysis import MileageData, Estimator, Summarizer
+
 DB_PATH = "/var/www/carLog/db/carLog.db"
 
 class CustomJSONEncoder(JSONEncoder):
@@ -15,6 +17,7 @@ class CustomJSONEncoder(JSONEncoder):
 				return obj.strftime("%Y-%m-%d")
 			except ValueError:
 				return "%0.4d-%0.2d-%0.2d" % (obj.year, obj.month, obj.day)
+	
 		return JSONEncoder.default(obj)
 
 application = Flask(__name__)
@@ -48,9 +51,43 @@ def addVehicle():
 		results = db.addVehicle(request.get_json())
 	return jsonify(results)
 
+
+@application.route("/vehicles/<vehicleId>/costSummary", methods=["GET"])
+def getVehicleCostSummary(vehicleId):
+	mileage = None
+	maintenance = None
+	with CarLogDB(DB_PATH) as db:
+		mileage = db.getAllVehicleMileage(vehicleId)
+		maintenance = db.getAllVehicleMaintenance(vehicleId)
+
+	s = Summarizer()
+	return jsonify({
+		"fuel" : s.getSummary(
+			map(lambda x : x["toDate"], mileage),
+			map(lambda x : x["pricePerGallon"] * x["gallons"], mileage)
+		),
+		"maintenance" : s.getSummary(
+			map(lambda x : x["at"], maintenance),
+			map(lambda x : x["cost"], maintenance)
+		)
+	});
+
 @application.route("/vehicles/<vehicleId>/estimates", methods=["GET"])
 def getVehicleEstimates(vehicleId):
-	return "foo"
+	mileage = None
+	with CarLogDB(DB_PATH) as db:
+		mileage = db.getAllVehicleMileage(vehicleId)
+
+	md = MileageData(mileage)
+	est = Estimator(md)
+	return jsonify({
+		"tank" : est.getSummary(md.gallons, 10),
+		"mpg" : est.getSummary(md.mpg, 10),
+		"range" : est.getSummary(md.tripMileage, 10),
+		"ppm" : est.getSummary(md.ppm, 10),
+		"fuelCosts" : est.getSummary(md.extendedAmounts, 10),
+		"ppd" : est.getSummary(md.ppd, 10)
+	})
 
 @application.route("/vehicles/<vehicleId>/mileage", methods=["GET"])
 def getVehicleMileage(vehicleId):

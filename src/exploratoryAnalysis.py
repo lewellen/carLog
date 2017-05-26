@@ -10,10 +10,9 @@ import matplotlib.cm as cm
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plot
 
-from sklearn.naive_bayes import GaussianNB
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, accuracy_score
-
+#from sklearn.naive_bayes import GaussianNB
+#from sklearn.model_selection import train_test_split
+#from sklearn.metrics import confusion_matrix, accuracy_score
 
 class MileageData:
 	def __init__(self, mileageEntries):
@@ -37,11 +36,21 @@ class MileageData:
 
 		self.daysBetween = map(lambda x : x.total_seconds() / 60 / 60 / 24, (numpy.array(self.toDates) - numpy.array(self.fromDates)))
 
+		self.ppd = map(lambda (x,y) : 0 if y == 0 else x / y, zip(self.extendedAmounts, self.daysBetween))
+
 class Summarizer:
-	def __init__(self, mileageData):
-		self.data = mileageData
+	def getSummary(self, dates, data):
+		dateBins, dateTotals = self.groupByYear(dates, data)
+		dateTotals = map(lambda x : dateTotals[x], dateBins)
+
+		return {
+			"total" : sum(dateTotals),
+			"dateBins" : dateBins,
+			"dateTotals" : dateTotals
+		}
 
 	def groupByYear(self, dates, data):
+		print data
 		dateBins = range(min(dates).year, max(dates).year + 1)
 		annualData = { dateBin : 0 for dateBin in dateBins }
 		for (d, x) in zip(dates, data):
@@ -58,9 +67,33 @@ class Estimator:
 			id(self.data.extendedAmounts) : scipy.stats.gumbel_l, 
 			id(self.data.mpg) : scipy.stats.norm, 
 			id(self.data.ppm) : scipy.stats.norm, 
-			id(self.data.daysBetween) : scipy.stats.gumbel_r
+			id(self.data.daysBetween) : scipy.stats.gumbel_r,
+			id(self.data.ppd) : scipy.stats.gumbel_r
 		}
- 
+
+	def getBins(self, xs, numBins):
+		assert numBins > 1
+
+		xmin = min(xs)
+		xmax = max(xs)
+
+		xrng = xmax - xmin
+		binSize = xrng / (numBins - 1)
+
+		binCenters = []
+		for i in xrange(0, numBins):
+			binCenters.append(xmin + binSize * i)
+
+		binCounts = []
+		for i in xrange(0, numBins):
+			binCounts.append(0)
+
+		for x in xs:
+			xp = (x - xmin) / binSize
+			binCounts[int(xp)] += 1
+
+		return binCenters, binCounts
+
 	def getParameters(self, xs):
 		if id(xs) not in self.rvFromObj:
 			return None
@@ -68,15 +101,13 @@ class Estimator:
 		scipyRV = self.rvFromObj[id(xs)]
 		loc, scale = scipyRV.fit(numpy.array(xs))
 		interval = scipyRV.interval(0.95, loc, scale)
-		quantiles = scipy.stats.mstats.mquantiles(xs)
-		maximum = numpy.max(xs)
+		#quantiles = scipy.stats.mstats.mquantiles(xs)
+		#maximum = numpy.max(xs)
 
 		return {
 			"loc": loc,
 			"scale": scale,
 			"interval": interval,
-			"quantiles": quantiles,
-			"maximum": maximum
 		}
 
 	def getPdf(self, xs, bins):
@@ -87,22 +118,35 @@ class Estimator:
 		loc, scale = scipyRV.fit(numpy.array(xs))
 		return scipyRV.pdf(bins, loc, scale)
 
+	def getSummary(self, xs, numBins):
+		centers, counts = self.getBins(xs, numBins)
+		params = self.getParameters(xs)
+		ys = self.getPdf(xs, centers).tolist()
+
+		return {
+			"binCenters" : centers,
+			"binCounts" : counts,
+			"params" : params,
+			"fit" : ys
+		}
+
 class Predictor:
 	def __init__(self, mileageData):
 		self.data = mileageData
 
 	def guessDestination(self, newEntry):
+		pass
 
-		minFromDate = min(self.data.fromDates)
-		dates = numpy.array(map(lambda x : (x - minFromDate).total_seconds() / 60 / 60 / 24, self.data.fromDates))
+#		minFromDate = min(self.data.fromDates)
+#		dates = numpy.array(map(lambda x : (x - minFromDate).total_seconds() / 60 / 60 / 24, self.data.fromDates))
 
-		# time since prev event, time of event
-		features = numpy.column_stack((self.data.daysBetween, dates))
+#		# time since prev event, time of event
+#		features = numpy.column_stack((self.data.daysBetween, dates))
 
-		residuals = (newEntry["toDate"] - newEntry["fromDate"]).total_seconds() / 60 / 60 / 24
-		date = (newEntry["fromDate"] - minFromDate).total_seconds() / 60 / 60 / 24
+#		residuals = (newEntry["toDate"] - newEntry["fromDate"]).total_seconds() / 60 / 60 / 24
+#		date = (newEntry["fromDate"] - minFromDate).total_seconds() / 60 / 60 / 24
 
-		model = GaussianNB()
-		model.fit(features, destinations)
-		predictY = model.predict(numpy.array([residual, date]))
-		return predictY[0]
+#		model = GaussianNB()
+#		model.fit(features, destinations)
+#		predictY = model.predict(numpy.array([residual, date]))
+#		return predictY[0]
