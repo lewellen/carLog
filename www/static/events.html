@@ -25,14 +25,13 @@
 
   <script type="text/javascript">
 	$(document).ready(function() {
-		bindAdd("#eventsForm", {
+		bindAdd("#eventsForm", "/rest/events", {
+			id : -1,
 			at : new Date(),
 			totalMileage : 0,
 			description : "",
 			vehicleId : 1
 		});
-
-		bindSubmit("/rest/events");
 
 		$.ajax({
 			url: "/rest/vehicles/1/events",
@@ -148,6 +147,7 @@
             </tr>
           </table>
           <input name="vehicleId" id="vehicleId" type="hidden" v-bind:value="vehicleId" />
+          <input name="id" id="id" type="hidden" v-bind:value="id" />
         </fieldset>
         <div style="text-align: right;">
           <a class="submit">Submit</a>

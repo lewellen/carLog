@@ -348,6 +348,9 @@ class MaintenanceTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, False, "Entry cannot be empty.")
 
+		if "id" in entry and entry["id"] > 0:
+			return self.update(entry)
+
 		validator = DictValidator([
 			KeyValidator(entry, "vehicleId").existsPositiveInteger(),
 			KeyValidator(entry, "providerId").existsPositiveInteger(),
@@ -357,6 +360,7 @@ class MaintenanceTable(CarLogDB):
 			KeyValidator(entry, "description").existsNotNullShorterThan(256),
 			KeyValidator(entry, "cost").existsPositiveInteger()
 		])
+
 		isValid, msg = validator.validate()
 		if not isValid:
 			return self.getResult(None, False, msg)
@@ -420,7 +424,7 @@ class MaintenanceTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("update maintenanceEntries set vehicleId = ?, providerId = ?, at = ?, primaryContact = ?, phoneNumber = ?, description = ? where id = ?", (entry["vehicleId"], entry["providerId"], entry["at"], entry["primaryContact"], entry["phoneNumber"], entry["description"], entry["cost"], entry["id"] ))
+			c.execute("update maintenanceEntries set vehicleId = ?, providerId = ?, at = ?, primaryContact = ?, phoneNumber = ?, description = ?, cost = ? where id = ?", (entry["vehicleId"], entry["providerId"], entry["at"], entry["primaryContact"], entry["phoneNumber"], entry["description"], entry["cost"], entry["id"] ))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:
@@ -468,7 +472,7 @@ class EventsTable(CarLogDB):
 
 	def find(self, entryId):
 		c = self.conn.cursor()
-		c.execute("select id, vehicleId, at, totalMileage, description from eventEntries where id = ?", entryId)
+		c.execute("select id, vehicleId, at, totalMileage, description from eventEntries where id = ?", (entryId,))
 		result = c.fetchone()
 		return self.__tupleToDict(result)
 
@@ -480,7 +484,7 @@ class EventsTable(CarLogDB):
 
 	def findByVehicleId(self, vehicleId):
 		c = self.conn.cursor()
-		c.execute("select id, vehicleId, at, totalMileage, description from eventEntries where vehicleId = ?", vehicleId)
+		c.execute("select id, vehicleId, at, totalMileage, description from eventEntries where vehicleId = ?", (vehicleId,))
 		results = c.fetchall()
 		return map(lambda x : self.__tupleToDict(x), results)
 

@@ -51,8 +51,9 @@ class KeyValidator:
 		return self.exists().isNotNone().isNotEmpty().isShorterThan(maxLen)
 
 	def existsNullableShorterThan(self, maxLen):
-		if self.key in self.dictValue and self.dictValue[self.key] is not None:
-			return self.exists().isNotNone().isNotEmpty().isShorterThan(maxLen)
+		if self.key in self.dictValue and self.dictValue[self.key] is not None and len(self.dictValue[self.key]) > 0:
+			return self.existsNotNullShorterThan(maxLen)
+
 		return self.exists()
 
 	def existsPositiveInteger(self):
