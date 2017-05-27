@@ -1,4 +1,4 @@
-function bindAdd(formUrl, defaultData) {
+function bindAdd(formUrl, postUrl, defaultData) {
 	$("#addEntry").colorbox({
 		href : formUrl,
 		inline : true,
@@ -7,6 +7,8 @@ function bindAdd(formUrl, defaultData) {
 				el: formUrl,
 				data : defaultData
 			});
+
+			bindSubmit(postUrl);
 		},
 		onClosed : function() {
 			location.reload();
@@ -30,16 +32,17 @@ function bindSubmit(postUrl) {
 			data : JSON.stringify(obj),
 			contentType: "application/json",
 			success : function(result) {
-				if(result.id == null) {
-					$("#formMessageBox").text(result.msg);
-					$("#formMessageBox").addClass("notice");
-				} else {
+				if(result.success) {
 					$("#messageBox").text("Success!");
 					$("#messageBox").addClass("success");
 					$.colorbox.close();
+				} else {
+					$("#formMessageBox").text(result.msg);
+					$("#formMessageBox").addClass("notice");
 				}
 			},
 			fail : function(result) {
+				console.log(result);
 				$("#formMessageBox").text(result.msg);
 				$("#formMessageBox").addClass("error");
 			}
@@ -60,6 +63,8 @@ function bindEdit(formUrl, getUrl) {
 						el: formUrl,
 						data : result
 					});
+			
+					bindSubmit(getUrl);
 				},
 				fail : function(result) {
 					console.log(result);
@@ -85,10 +90,17 @@ function bindRemove(deleteUrl) {
 			method : "DELETE",
 			url : deleteUrl + "/" + $(this).attr("rel"),
 			success : function(result) {
-				location.reload();
+				if(result.success == null) {
+					location.reload();
+				} else {
+					$("#formMessageBox").text(result.msg);
+					$("#formMessageBox").addClass("notice");
+				}
 			},
 			fail : function(result) {
-				$("#messageBox").text("Failed to remove record.");
+				console.log(result);
+				$("#formMessageBox").text(result.msg);
+				$("#formMessageBox").addClass("error");
 			}
 		});
 	});

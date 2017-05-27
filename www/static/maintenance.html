@@ -25,7 +25,8 @@
 
   <script type="text/javascript">
 	$(document).ready(function() {
-		bindAdd("#maintenanceForm", {
+		bindAdd("#maintenanceForm", "/rest/maintenance", {
+			id : -1,
 			vehicleId : 1,
 			providerId : 1,
 			at : new Date(),
@@ -34,8 +35,6 @@
 			description : "",
 			cost : 0
 		});
-
-		bindSubmit("/rest/maintenance");
 
 		$.ajax({
 			url: "/rest/vehicles/1/maintenance",
@@ -184,6 +183,7 @@
             </tr>
           </table>
           <input name="vehicleId" id="vehicleId" type="hidden" v-bind:value="vehicleId" />
+          <input name="id" id="id" type="hidden" v-bind:value="id" />
         </fieldset>
         <div style="text-align: right;">
           <a class="submit">Submit</a>

@@ -74,11 +74,16 @@ class Estimator:
 	def getBins(self, xs, numBins):
 		assert numBins > 1
 
+		if len(xs) == 0:
+			return [], []
+
 		xmin = min(xs)
 		xmax = max(xs)
-
 		xrng = xmax - xmin
 		binSize = xrng / (numBins - 1)
+
+		if binSize == 0:
+			return [xmin], [ len(xs) ]
 
 		binCenters = []
 		for i in xrange(0, numBins):
