@@ -197,7 +197,7 @@ def exportMileageByVehicleId(vehicleId):
 		x["destination"] = destNameFromId[x["destinationId"]]
 		del x["destinationId"]
 
-	return csvResponse(mileage, ["fromDate", "toDate", "totalMileage", "tripMileage", "gallons", "pricePerGallon", "provider", "destination"], "mileageExport.csv")
+	return csvResponse(mileage, ["fromDate", "toDate", "odometer", "tripMileage", "gallons", "pricePerGallon", "provider", "destination"], "mileageExport.csv")
 
 @application.route("/mileage/<mileageId>", methods=["GET"])
 def findMileage(mileageId):
@@ -294,7 +294,7 @@ def exportEventsByVehicleId(vehicleId):
 		del x["id"]
 		del x["vehicleId"]
 
-	return csvResponse(events, ["at", "totalMileage", "description"], "eventsExport.csv")
+	return csvResponse(events, ["at", "odometer", "description"], "eventsExport.csv")
 
 @application.route("/events/<eventId>", methods=["GET"])
 def getEvent(eventId):

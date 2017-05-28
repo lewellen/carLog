@@ -233,7 +233,7 @@ class MileageTable(CarLogDB):
 			"fromDate": self.strToDate(operator.itemgetter(4)(result)),
 			"toDate": self.strToDate(operator.itemgetter(5)(result)),
 			"tripMileage": float(operator.itemgetter(6)(result)),
-			"totalMileage" : float(operator.itemgetter(7)(result)),
+			"odometer" : float(operator.itemgetter(7)(result)),
 			"gallons": float(operator.itemgetter(8)(result)),
 			"pricePerGallon": float(operator.itemgetter(9)(result))
 		}
@@ -252,7 +252,7 @@ class MileageTable(CarLogDB):
 			KeyValidator(entry, "fromDate").exists().isNotNone(),
 			KeyValidator(entry, "toDate").exists().isNotNone(),
 			KeyValidator(entry, "tripMileage").existsPositiveInteger(),
-			KeyValidator(entry, "totalMileage").existsPositiveInteger(),
+			KeyValidator(entry, "odometer").existsPositiveInteger(),
 			KeyValidator(entry, "gallons").existsPositiveInteger(),
 			KeyValidator(entry, "pricePerGallon").existsPositiveInteger()
 		])
@@ -263,7 +263,7 @@ class MileageTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("insert into mileageEntries (vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, totalMileage, gallons, pricePerGallon) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", (entry["vehicleId"], entry["providerId"], entry["destinationId"], entry["fromDate"], entry["toDate"], entry["tripMileage"], entry["totalMileage"], entry["gallons"], entry["pricePerGallon"]))
+			c.execute("insert into mileageEntries (vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, odometer, gallons, pricePerGallon) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", (entry["vehicleId"], entry["providerId"], entry["destinationId"], entry["fromDate"], entry["toDate"], entry["tripMileage"], entry["odometer"], entry["gallons"], entry["pricePerGallon"]))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:
@@ -271,19 +271,19 @@ class MileageTable(CarLogDB):
 
 	def find(self, mileageId):
 		c = self.conn.cursor()
-		c.execute("select id, vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, totalMileage, gallons, pricePerGallon from mileageEntries where id = ?", (mileageId,))
+		c.execute("select id, vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, odometer, gallons, pricePerGallon from mileageEntries where id = ?", (mileageId,))
 		result = c.fetchone()
 		return self.__tupleToDict(result)
 
 	def findAll(self, vehicleId):
 		c = self.conn.cursor()
-		c.execute("select id, vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, totalMileage, gallons, pricePerGallon from mileageEntries")
+		c.execute("select id, vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, odometer, gallons, pricePerGallon from mileageEntries")
 		results = c.fetchall()
 		return map(lambda x : self.__tupleToDict(x), results)
 
 	def findByVehicleId(self, vehicleId):
 		c = self.conn.cursor()
-		c.execute("select id, vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, totalMileage, gallons, pricePerGallon from mileageEntries where vehicleId = ?", (vehicleId,))
+		c.execute("select id, vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, odometer, gallons, pricePerGallon from mileageEntries where vehicleId = ?", (vehicleId,))
 		results = c.fetchall()
 		return map(lambda x : self.__tupleToDict(x), results)
 
@@ -311,7 +311,7 @@ class MileageTable(CarLogDB):
 			KeyValidator(entry, "fromDate").exists().isNotNone(),
 			KeyValidator(entry, "toDate").exists().isNotNone(),
 			KeyValidator(entry, "tripMileage").existsPositiveInteger(),
-			KeyValidator(entry, "totalMileage").existsPositiveInteger(),
+			KeyValidator(entry, "odometer").existsPositiveInteger(),
 			KeyValidator(entry, "gallons").existsPositiveInteger(),
 			KeyValidator(entry, "pricePerGallon").existsPositiveInteger()
 		])
@@ -322,7 +322,7 @@ class MileageTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("update mileageEntries set vehicleId = ?, providerId = ?, destinationId = ?, fromDate = ?, toDate = ?, tripMileage = ?, totalMileage = ?, gallons = ?, pricePerGallon = ? where id = ?", (entry["vehicleId"], entry["providerId"], entry["destinationId"], entry["fromDate"], entry["toDate"], entry["tripMileage"], entry["totalMileage"], entry["gallons"], entry["pricePerGallon"], entry["id"]))
+			c.execute("update mileageEntries set vehicleId = ?, providerId = ?, destinationId = ?, fromDate = ?, toDate = ?, tripMileage = ?, odometer = ?, gallons = ?, pricePerGallon = ? where id = ?", (entry["vehicleId"], entry["providerId"], entry["destinationId"], entry["fromDate"], entry["toDate"], entry["tripMileage"], entry["odometer"], entry["gallons"], entry["pricePerGallon"], entry["id"]))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:
@@ -440,7 +440,7 @@ class EventsTable(CarLogDB):
 			"id" : int(operator.itemgetter(0)(result)),
 			"vehicleId" : int(operator.itemgetter(1)(result)),
 			"at": self.strToDate(operator.itemgetter(2)(result)),
-			"totalMileage" : operator.itemgetter(3)(result),
+			"odometer" : operator.itemgetter(3)(result),
 			"description": operator.itemgetter(4)(result),
 		}
 
@@ -454,7 +454,7 @@ class EventsTable(CarLogDB):
 		validator = DictValidator([
 			KeyValidator(entry, "vehicleId").existsPositiveInteger(),
 			KeyValidator(entry, "at").exists().isNotNone(),
-			KeyValidator(entry, "totalMileage").exists(),
+			KeyValidator(entry, "odometer").exists(),
 			KeyValidator(entry, "description").existsNullableShorterThan(256)
 		])
 
@@ -464,7 +464,7 @@ class EventsTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("insert into eventEntries (vehicleId, at, totalMileage, description) values (?, ?, ?, ?)", (entry["vehicleId"], entry["at"], entry["totalMileage"], entry["description"]))
+			c.execute("insert into eventEntries (vehicleId, at, odometer, description) values (?, ?, ?, ?)", (entry["vehicleId"], entry["at"], entry["odometer"], entry["description"]))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:
@@ -472,19 +472,19 @@ class EventsTable(CarLogDB):
 
 	def find(self, entryId):
 		c = self.conn.cursor()
-		c.execute("select id, vehicleId, at, totalMileage, description from eventEntries where id = ?", (entryId,))
+		c.execute("select id, vehicleId, at, odometer, description from eventEntries where id = ?", (entryId,))
 		result = c.fetchone()
 		return self.__tupleToDict(result)
 
 	def findAll(self):
 		c = self.conn.cursor()
-		c.execute("select id, vehicleId, at, totalMileage, description from eventEntries")
+		c.execute("select id, vehicleId, at, odometer, description from eventEntries")
 		results = c.fetchall()
 		return map(lambda x : self.__tupleToDict(x), results)
 
 	def findByVehicleId(self, vehicleId):
 		c = self.conn.cursor()
-		c.execute("select id, vehicleId, at, totalMileage, description from eventEntries where vehicleId = ?", (vehicleId,))
+		c.execute("select id, vehicleId, at, odometer, description from eventEntries where vehicleId = ?", (vehicleId,))
 		results = c.fetchall()
 		return map(lambda x : self.__tupleToDict(x), results)
 
@@ -509,7 +509,7 @@ class EventsTable(CarLogDB):
 			KeyValidator(entry, "id").existsPositiveInteger(),
 			KeyValidator(entry, "vehicleId").existsPositiveInteger(),
 			KeyValidator(entry, "at").exists().isNotNone(),
-			KeyValidator(entry, "totalMileage").exists(),
+			KeyValidator(entry, "odometer").exists(),
 			KeyValidator(entry, "description").existsNullableShorterThan(256)
 		])
 
@@ -519,7 +519,7 @@ class EventsTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("update eventEntries set vehicleId = ?, at = ?, totalMileage = ?, description = ? where id = ?", (entry["vehicleId"], entry["at"], entry["totalMileage"], entry["description"], entry["id"]))
+			c.execute("update eventEntries set vehicleId = ?, at = ?, odometer = ?, description = ? where id = ?", (entry["vehicleId"], entry["at"], entry["odometer"], entry["description"], entry["id"]))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1,  None)
 		except sqlite3.Error, e:

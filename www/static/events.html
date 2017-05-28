@@ -28,7 +28,7 @@
 		bindAdd("#eventsForm", "/rest/events", {
 			id : -1,
 			at : toISO8601DateStr(new Date()),
-			totalMileage : 0,
+			odometer : 0,
 			description : "",
 			vehicleId : 1
 		});
@@ -91,8 +91,6 @@
   <div class="container">
     <div id="messageBox" class="span-24 last"></div>
 
-    <br />
-
     <div id="eventsTable" class="span-24 last">
       <table>
         <thead>
@@ -108,7 +106,7 @@
           <tr class="editableRow" v-for="entry in entries">
             <td style="width:16px;"><a class="edit" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/pencil.png" /></a></td>
             <td>{{ entry.at }}</td>
-            <td>{{ entry.totalMileage }}</td>
+            <td>{{ entry.odometer }}</td>
             <td>{{ entry.description }}</td>
             <td style="width:16px;"><a class="remove" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/minus-circle.png" /></a></td>
           </tr>
@@ -138,8 +136,8 @@
               <td><input name="at" id="at" type="date" v-bind:value="at" /></td>
             </tr>
             <tr>
-              <td><label for="totalMileage">Odometer</label></td>
-              <td><input name="totalMileage" id="totalMileage" type="number" v-bind:value="totalMileage" /></td>
+              <td><label for="odometer">Odometer</label></td>
+              <td><input name="odometer" id="odometer" type="number" v-bind:value="odometer" /></td>
             </tr>
             <tr>
               <td><label for="description">Description</label></td>

@@ -30,7 +30,7 @@
 			toDate : toISO8601DateStr(new Date()),
 			fromDate : toISO8601DateStr(new Date()),
 			tripMileage : 0,
-			totalMileage : 0,
+			odometer : 0,
 			gallons : 0,
 			pricePerGallon : 0,
 			vehicleId : 1
@@ -136,6 +136,7 @@
             <th></th>
             <th>From</th>
             <th>To</th>
+            <th>Odometer (mi)</th>
             <th>Trip (mi)</th>
             <th>Fuel (gal)</th>
             <th>PPG ($/gal)</th>
@@ -151,6 +152,7 @@
             <td style="width:16px;"><a class="edit" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/pencil.png" /></a></td>
             <td>{{ entry.fromDate }}</td>
             <td>{{ entry.toDate }}</td>
+            <td>{{ entry.odometer }}</td>
             <td>{{ entry.tripMileage }}</td>
             <td>{{ entry.gallons }}</td>
             <td>{{ entry.pricePerGallon }}</td>
@@ -194,8 +196,8 @@
               <td><input name="tripMileage" id="tripMileage" type="number" v-bind:value="tripMileage" /></td>
             </tr>
             <tr>
-              <td><label for="totalMileage">Odometer</label></td>
-              <td><input name="totalMileage" id="totalMileage" type="number" v-bind:value="totalMileage" /></td>
+              <td><label for="odometer">Odometer</label></td>
+              <td><input name="odometer" id="odometer" type="number" v-bind:value="odometer" /></td>
             </tr>
             <tr>
               <td><label for="gallons">Gallons</label></td>

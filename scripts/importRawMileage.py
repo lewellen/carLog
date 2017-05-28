@@ -55,6 +55,6 @@ if __name__ == "__main__":
 			(1, 1, dbDestinations[row["Dest"]], row["Start"], row["End"], row["Distance"], row["Total Dist"], row["Fuel"], row["PPG"])
 		)
 
-	c.executemany('insert into mileageEntries (vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, totalMileage, gallons, pricePerGallon) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', entries)
+	c.executemany('insert into mileageEntries (vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, odometer, gallons, pricePerGallon) values (?, ?, ?, ?, ?, ?, ?, ?, ?)', entries)
 	conn.commit()
 	conn.close()

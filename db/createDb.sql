@@ -53,7 +53,7 @@ create table mileageEntries(
 	fromDate date not null,
 	toDate date not null,
 	tripMileage float not null,
-	totalMileage float not null,
+	odometer float not null,
 	gallons float not null,
 	pricePerGallon float not null,
 	foreign key(vehicleId) references vehicles(id),
@@ -65,7 +65,7 @@ create table eventEntries(
 	id integer primary key asc not null,
 	vehicleId integer not null,
 	at date not null,
-	totalMileage float null,
+	odometer float null,
 	description varchar(256) not null,
 	foreign key(vehicleId) references vehicles(id)
 );
