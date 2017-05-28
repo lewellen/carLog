@@ -2,7 +2,10 @@ import sys
 import os.path
 import datetime
 
-from flask import Flask, request, jsonify
+import csv
+import StringIO
+
+from flask import Flask, request, jsonify, make_response
 from flask.json import JSONEncoder
 
 from dao import CarLogDB, UsersTable, VehiclesTable, MileageTable, MaintenanceTable, EventsTable, ProvidersTable, ProviderTypesTable, DestinationsTable
@@ -22,6 +25,32 @@ class CustomJSONEncoder(JSONEncoder):
 
 application = Flask(__name__)
 application.json_encoder = CustomJSONEncoder
+
+def dictArrayToCSV(xs, fieldnames = None):
+	content = None
+	if len(xs) > 0:
+		target = StringIO.StringIO()
+
+		if fieldnames is None or len(fieldnames) == 0:
+			fieldnames = xs[0].keys()
+
+		writer = csv.DictWriter(target, fieldnames=fieldnames)
+		writer.writeheader()
+		for x in xs:
+			writer.writerow(x)
+
+		content = target.getvalue()
+
+		target.close()
+
+	return content
+
+def csvResponse(xs, fieldnames = None, fileName = "export.csv"):
+	content = dictArrayToCSV(xs, fieldnames)
+	response = make_response(content)
+	response.headers["Content-Disposition"] = "attachment; filename=%s" % fileName
+	response.mimetype = "text/csv"
+	return response
 
 # Users -----------------------------------------------------------------------
 
@@ -109,17 +138,17 @@ def getVehicleEstimates(vehicleId):
 	with MileageTable(DB_PATH) as db:
 		mileage = db.findByVehicleId(vehicleId)
 
+	numBins = 10
 	md = MileageData(mileage)
 	est = Estimator(md)
 	return jsonify({
-		"tank" : est.getSummary(md.gallons, 10),
-		"mpg" : est.getSummary(md.mpg, 10),
-		"range" : est.getSummary(md.tripMileage, 10),
-		"ppm" : est.getSummary(md.ppm, 10),
-		"fuelCosts" : est.getSummary(md.extendedAmounts, 10),
-		"ppd" : est.getSummary(md.ppd, 10)
+		"tank" : est.getSummary(md.gallons, numBins),
+		"mpg" : est.getSummary(md.mpg, numBins),
+		"range" : est.getSummary(md.tripMileage, numBins),
+		"ppm" : est.getSummary(md.ppm, numBins),
+		"fuelCosts" : est.getSummary(md.extendedAmounts, numBins),
+		"ppd" : est.getSummary(md.ppd, numBins)
 	})
-
 
 # Mileage ---------------------------------------------------------------------
 
@@ -140,6 +169,35 @@ def findMileageByVehicleId(vehicleId):
 	with MileageTable(DB_PATH) as db:
 		results = db.findByVehicleId(vehicleId)
 	return jsonify(results)
+
+@application.route("/vehicles/<vehicleId>/mileage/csv", methods=["GET"])
+def exportMileageByVehicleId(vehicleId):
+	mileage = None
+	with MileageTable(DB_PATH) as db:
+		mileage = db.findByVehicleId(vehicleId)
+	
+	destinations = None
+	with DestinationsTable(DB_PATH) as db:
+		destinations = db.findAll()
+
+	providers = None
+	with ProvidersTable(DB_PATH) as db:
+		providers = db.findAll()
+
+	destNameFromId = { x["id"] : x["name"] for x in destinations }
+	providerNameFromId = { x["id"] : x["name"] for x in providers }
+
+	for x in mileage:
+		del x["id"]
+		del x["vehicleId"]
+
+		x["provider"] = providerNameFromId[x["providerId"]]
+		del x["providerId"]
+
+		x["destination"] = destNameFromId[x["destinationId"]]
+		del x["destinationId"]
+
+	return csvResponse(mileage, ["fromDate", "toDate", "totalMileage", "tripMileage", "gallons", "pricePerGallon", "provider", "destination"], "mileageExport.csv")
 
 @application.route("/mileage/<mileageId>", methods=["GET"])
 def findMileage(mileageId):
@@ -173,6 +231,27 @@ def findMaintenanceByVehicleId(vehicleId):
 		results = db.findByVehicleId(vehicleId)
 	return jsonify(results)
 
+@application.route("/vehicles/<vehicleId>/maintenance/csv", methods=["GET"])
+def exportMaintenanceByVehicleId(vehicleId):
+	maintenance= None
+	with MaintenanceTable(DB_PATH) as db:
+		maintenance = db.findByVehicleId(vehicleId)
+	
+	providers = None
+	with ProvidersTable(DB_PATH) as db:
+		providers = db.findAll()
+
+	providerNameFromId = { x["id"] : x["name"] for x in providers }
+
+	for x in maintenance:
+		del x["id"]
+		del x["vehicleId"]
+
+		x["provider"] = providerNameFromId[x["providerId"]]
+		del x["providerId"]
+
+	return csvResponse(maintenance, ["at", "provider", "primaryContact", "phoneNumber", "cost", "description"], "maintenanceExport.csv")
+
 @application.route("/maintenance/<maintenanceId>", methods=["GET"])
 def findMaintenance(maintenanceId):
 	with MaintenanceTable(DB_PATH) as db:
@@ -204,6 +283,18 @@ def getEventsByVehicleId(vehicleId):
 	with EventsTable(DB_PATH) as db:
 		results = db.findByVehicleId(vehicleId)
 	return jsonify(results)
+
+@application.route("/vehicles/<vehicleId>/events/csv", methods=["GET"])
+def exportEventsByVehicleId(vehicleId):
+	events = None
+	with EventsTable(DB_PATH) as db:
+		events = db.findByVehicleId(vehicleId)
+
+	for x in events:
+		del x["id"]
+		del x["vehicleId"]
+
+	return csvResponse(events, ["at", "totalMileage", "description"], "eventsExport.csv")
 
 @application.route("/events/<eventId>", methods=["GET"])
 def getEvent(eventId):

@@ -31,6 +31,12 @@ curl -X POST "http://127.0.0.1:5000/providerTypes" -H "Content-Type:application/
 curl -X POST "http://127.0.0.1:5000/providers" -H "Content-Type:application/json" -d '{"id" : 2, "providerTypeId" : 1, "name" : "ProviderName2", "address" : "1234 Street AnyTown, USA 12345"}'
 curl -X POST "http://127.0.0.1:5000/destinations" -H "Content-Type:application/json" -d '{"id" : 2, "name" : "DestinationName2"}'
 
+# Data dependent
+curl -X GET "http://127.0.0.1:5000/vehicles/1/estimates"
+curl -X GET "http://127.0.0.1:5000/vehicles/1/mileage/csv"
+curl -X GET "http://127.0.0.1:5000/vehicles/1/maintenance/csv"
+curl -X GET "http://127.0.0.1:5000/vehicles/1/events/csv"
+
 # Deletes
 curl -X DELETE "http://127.0.0.1:5000/mileage/1"
 curl -X DELETE "http://127.0.0.1:5000/maintenance/1"
@@ -44,7 +50,6 @@ curl -X DELETE "http://127.0.0.1:5000/destinations/2"
 # Reads
 curl -X GET "http://127.0.0.1:5000/users"
 curl -X GET "http://127.0.0.1:5000/users/1/vehicles"
-#curl -X GET "http://127.0.0.1:5000/vehicles/1/estimates"
 curl -X GET "http://127.0.0.1:5000/vehicles/1/mileage"
 curl -X GET "http://127.0.0.1:5000/vehicles/1/maintenance"
 curl -X GET "http://127.0.0.1:5000/vehicles/1/events"
