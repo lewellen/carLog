@@ -40,7 +40,7 @@
 				new Vue({
 					el: "#eventsTable",
 					data : {
-						entries : order(events, function(x) { return x.toDate; }, descComparator)
+						entries : order(events, function(x) { return x.at; }, descComparator)
 					}
 				});
 
