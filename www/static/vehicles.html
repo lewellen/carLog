@@ -25,17 +25,15 @@
 
   <script type="text/javascript">
 	$(document).ready(function() {
-		bindAdd("#vehiclesForm", {
+		bindAdd("#vehiclesForm", "/rest/vehicles", {
 			id : -1,
 			userId : 1,
 			vin : "",
 			make : "",
 			model : "",
-			year : (new Date()).year,
+			year : (new Date()).getFullYear(),
 			stillOwn : true
 		});
-
-		bindSubmit("/rest/vehicles");
 
 		$.ajax({
 			method : "GET",

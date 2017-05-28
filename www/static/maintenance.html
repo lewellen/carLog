@@ -29,7 +29,7 @@
 			id : -1,
 			vehicleId : 1,
 			providerId : 1,
-			at : new Date(),
+			at : toISO8601DateStr(new Date()),
 			primaryContact : "",
 			phoneNumber : "",
 			description : "",
@@ -57,7 +57,9 @@
 						$(this).find(".remove").hide();
 					});
 
-				bindEdit("#maintenanceForm", "/rest/maintenance");
+				bindEdit("#maintenanceForm", "/rest/maintenance", function(entry) {
+					$("#providerId").val(entry.providerId);
+				});
 
 				bindRemove("/rest/maintenance");
 			},

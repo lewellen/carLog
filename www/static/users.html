@@ -25,12 +25,10 @@
 
   <script type="text/javascript">
 	$(document).ready(function() {
-		bindAdd("#usersForm", {
+		bindAdd("#usersForm", "/rest/users", {
 			id : -1,
 			name : ""
 		});
-
-		bindSubmit("/rest/users");
 
 		$.ajax({
 			method : "GET",

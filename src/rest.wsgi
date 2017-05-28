@@ -45,7 +45,7 @@ def findUser(userId):
 
 @application.route("/users/<userId>", methods=["DELETE"])
 def removeUser(userId):
-        with MaintenanceTable(DB_PATH) as db:
+        with UsersTable(DB_PATH) as db:
                 results = db.remove(userId)
         return jsonify(results)
 

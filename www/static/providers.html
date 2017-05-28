@@ -25,14 +25,12 @@
 
   <script type="text/javascript">
 	$(document).ready(function() {
-		bindAdd("#providersForm", {
+		bindAdd("#providersForm", "/rest/providers", {
 			id : -1,
 			providerTypeId : 1,
 			name : "",
 			address : ""
 		});
-
-		bindSubmit("/rest/providers");
 
 		$.ajax({
 			method : "GET",

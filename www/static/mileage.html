@@ -25,17 +25,16 @@
 
   <script type="text/javascript">
 	$(document).ready(function() {
-		bindAdd("#mileageForm", {
-			toDate : new Date(),
-			fromDate : new Date(),
+		bindAdd("#mileageForm", "/rest/mileage", {
+			id : -1,
+			toDate : toISO8601DateStr(new Date()),
+			fromDate : toISO8601DateStr(new Date()),
 			tripMileage : 0,
 			totalMileage : 0,
 			gallons : 0,
 			pricePerGallon : 0,
 			vehicleId : 1
 		});
-
-		bindSubmit("/rest/mileage");
 
 		$.ajax({
 			url: "/rest/vehicles/1/mileage",
@@ -60,7 +59,10 @@
 						$(this).find(".remove").hide();
 					});
 
-				bindEdit("#mileageForm", "/rest/mileage");
+				bindEdit("#mileageForm", "/rest/mileage", function(entry) {
+					$("#providerId").val(entry.providerId);
+					$("#destinationId").val(entry.destinationId);
+				});
 
 				bindRemove("/rest/mileage");
 			},

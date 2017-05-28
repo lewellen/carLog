@@ -31,7 +31,7 @@ class CarLogDB(object):
 		self.conn.commit() 
 
 	def getResult(self, idValue = None, success = True, msg = None):
-		return { "id" : idValue, "success" : success, "msg" : repr(msg) }
+		return { "id" : idValue, "success" : success, "msg" : None if msg is None else repr(msg) }
 
 	def strToDate(self, value):
 		if value is None:
@@ -56,7 +56,7 @@ class UsersTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, "User cannot be empty.")
 
-		if "id" in entry and entry["id"] > 0:
+		if "id" in entry and int(entry["id"]) > 0:
 			return self.update(entry)
 
 		validator = DictValidator([
@@ -100,7 +100,7 @@ class UsersTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, "User cannot be empty.")
 
-		if "id" in entry and entry["id"] < 0:
+		if "id" in entry and int(entry["id"]) < 0:
 			return self.add(entry)
 
 		validator = DictValidator([
@@ -139,7 +139,7 @@ class VehiclesTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, False, "Vehicle cannot be empty.")
 
-		if "id" in entry and entry["id"] > 0:
+		if "id" in entry and int(entry["id"]) > 0:
 			return self.update(entry)
 
 		validator = DictValidator([
@@ -194,7 +194,7 @@ class VehiclesTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, False, "Vehicle cannot be empty.")
 
-		if "id" in entry and entry["id"] < 0:
+		if "id" in entry and int(entry["id"]) < 0:
 			return self.update(entry)
 
 		validator = DictValidator([
@@ -242,7 +242,7 @@ class MileageTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, None, "Entry cannot be empty.")
 
-		if "id" in entry and entry["id"] > 0:
+		if "id" in entry and int(entry["id"]) > 0:
 			return self.update(entry)
 
 		validator = DictValidator([
@@ -300,7 +300,7 @@ class MileageTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, None, "Entry cannot be empty.")
 
-		if "id" in entry and entry["id"] < 0:
+		if "id" in entry and int(entry["id"]) < 0:
 			return self.add(entry)
 
 		validator = DictValidator([
@@ -348,7 +348,7 @@ class MaintenanceTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, False, "Entry cannot be empty.")
 
-		if "id" in entry and entry["id"] > 0:
+		if "id" in entry and int(entry["id"]) > 0:
 			return self.update(entry)
 
 		validator = DictValidator([
@@ -404,7 +404,7 @@ class MaintenanceTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, "Entry cannot be empty.")
 
-		if "id" in entry and entry["id"] < 0:
+		if "id" in entry and int(entry["id"]) < 0:
 			return self.add(entry)
 
 		validator = DictValidator([
@@ -448,7 +448,7 @@ class EventsTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, False, "Event cannot be empty.")
 
-		if "id" in entry and entry["id"] > 0:
+		if "id" in entry and int(entry["id"]) > 0:
 			return self.update(entry)
 
 		validator = DictValidator([
@@ -502,7 +502,7 @@ class EventsTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, False, "Event cannot be empty.")
 
-		if "id" in entry and entry["id"] < 0:
+		if "id" in entry and int(entry["id"]) < 0:
 			return self.add(entry)
 
 		validator = DictValidator([
@@ -539,7 +539,7 @@ class ProviderTypesTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, "ProviderType cannot be empty.")
 
-		if "id" in entry and entry["id"] > 0:
+		if "id" in entry and int(entry["id"]) > 0:
 			return self.update(entry)
 
 		validator = DictValidator([
@@ -583,7 +583,7 @@ class ProviderTypesTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, "ProviderTypes cannot be empty.")
 
-		if "id" in entry and entry["id"] < 0:
+		if "id" in entry and int(entry["id"]) < 0:
 			return self.add(entry)
 
 		validator = DictValidator([
@@ -619,7 +619,7 @@ class ProvidersTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, False, "Provider cannot be empty.")
 
-		if "id" in entry and entry["id"] > 0:
+		if "id" in entry and int(entry["id"]) > 0:
 			return self.update(entry)
 
 		validator = DictValidator([
@@ -661,17 +661,17 @@ class ProvidersTable(CarLogDB):
 	def remove(self, providerId):
 		try:
 			c = self.conn.cursor()
-			c.execute("delete from providerTypes where id = ?", (providerTypeId,))
+			c.execute("delete from providers where id = ?", (providerId,))
 			self.conn.commit()
-			return self.getResult(providerTypeId, c.rowcount == 1, None)
+			return self.getResult(providerId, c.rowcount == 1, None)
 		except sqlite3.Error, e:
-			return self.getResult(providerTypeId, False, e)
+			return self.getResult(providerId, False, e)
 
 	def update(self, entry):
 		if entry is None:
 			return self.getResult(None, False, "Provider cannot be empty.")
 
-		if "id" in entry and entry["id"] < 0:
+		if "id" in entry and int(entry["id"]) < 0:
 			return self.update(entry)
 
 		validator = DictValidator([
@@ -689,7 +689,7 @@ class ProvidersTable(CarLogDB):
 			c = self.conn.cursor()
 			c.execute("update providers set providerTypeId = ?, name = ?, address = ? where id = ?", (entry["providerTypeId"], entry["name"], entry["address"], entry["id"]))
 			self.conn.commit()
-			return self.getResult(entry["id"], c.rowcount == 1, None)
+			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:
 			return self.getResult(entry["id"], False, e)
 
@@ -707,7 +707,7 @@ class DestinationsTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, "Destination cannot be empty.")
 
-		if "id" in entry and entry["id"] > 0:
+		if "id" in entry and int(entry["id"]) > 0:
 			return self.update(entry)
 
 		validator = DictValidator([
@@ -751,7 +751,7 @@ class DestinationsTable(CarLogDB):
 		if entry is None:
 			return self.getResult(None, "Destination cannot be empty.")
 
-		if "id" in entry and entry["id"] < 0:
+		if "id" in entry and int(entry["id"]) < 0:
 			return self.add(entry)
 
 		validator = DictValidator([

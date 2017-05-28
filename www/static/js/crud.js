@@ -1,3 +1,25 @@
+function toISO8601DateStr(date) {
+	year = date.getFullYear()
+	month = date.getMonth() + 1
+	day = date.getDate()
+
+	output = year.toString()
+	output += "-";
+
+	if(month < 10) {
+		output += "0";
+	}
+	output += month.toString();
+	output += "-";
+
+	if(day < 10) {
+		output += "0";
+	}
+	output += day.toString();
+
+	return output;
+}
+
 function bindAdd(formUrl, postUrl, defaultData) {
 	$("#addEntry").colorbox({
 		href : formUrl,
@@ -26,12 +48,15 @@ function bindSubmit(postUrl) {
 			obj[formArray[i]["name"]] = formArray[i]["value"];
 		}
 
+		console.log(JSON.stringify(obj))
+
 		$.ajax({
 			type : "POST",
 			url : postUrl,
 			data : JSON.stringify(obj),
 			contentType: "application/json",
 			success : function(result) {
+				console.log(result);
 				if(result.success) {
 					$("#messageBox").text("Success!");
 					$("#messageBox").addClass("success");
@@ -50,7 +75,7 @@ function bindSubmit(postUrl) {
 	});
 }
 
-function bindEdit(formUrl, getUrl) {
+function bindEdit(formUrl, getUrl, selectDropDowns = null) {
 	$(".edit").colorbox({
 		inline: true,
 		href: formUrl,
@@ -63,7 +88,10 @@ function bindEdit(formUrl, getUrl) {
 						el: formUrl,
 						data : result
 					});
-			
+
+					if(selectDropDowns != null)
+						selectDropDowns(result)
+
 					bindSubmit(getUrl);
 				},
 				fail : function(result) {
@@ -90,7 +118,7 @@ function bindRemove(deleteUrl) {
 			method : "DELETE",
 			url : deleteUrl + "/" + $(this).attr("rel"),
 			success : function(result) {
-				if(result.success == null) {
+				if(result.success == true) {
 					location.reload();
 				} else {
 					$("#formMessageBox").text(result.msg);

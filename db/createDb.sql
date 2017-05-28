@@ -73,3 +73,4 @@ create table eventEntries(
 insert into users (name) values ("Default");
 insert into providerTypes (name) values ("Unknown");
 insert into providers (providerTypeId, name) values (1, "Unknown");
+insert into destinations (name) values ("Unknown");

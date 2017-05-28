@@ -27,7 +27,7 @@
 	$(document).ready(function() {
 		bindAdd("#eventsForm", "/rest/events", {
 			id : -1,
-			at : new Date(),
+			at : toISO8601DateStr(new Date()),
 			totalMileage : 0,
 			description : "",
 			vehicleId : 1
