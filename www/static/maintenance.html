@@ -43,7 +43,7 @@
 				new Vue({
 					el: "#maintenanceTable",
 					data : {
-						entries : maintenance
+						entries : order(maintenance, function(x) { return x.at; }, descComparator)
 					}
 				});
 

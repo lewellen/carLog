@@ -20,6 +20,36 @@ function toISO8601DateStr(date) {
 	return output;
 }
 
+function ascComparator(x, y) {
+	if(x < y) {
+		return -1;
+	}
+
+	if(x > y) {
+		return +1;
+	}
+
+	return 0;
+}
+
+function descComparator(x, y) {
+	if(x < y) {
+		return +1;
+	}
+
+	if(x > y) {
+		return -1;
+	}
+
+	return 1;
+}
+
+function order(xs, selector, comparator) {
+	return xs.sort(function(a,b) {
+		return comparator(selector(a), selector(b));
+	});
+}
+
 function bindAdd(formUrl, postUrl, defaultData) {
 	$("#addEntry").colorbox({
 		href : formUrl,

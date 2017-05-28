@@ -45,7 +45,7 @@
 				new Vue({
 					el: "#mileageTable",
 					data : {
-						entries : mileage
+						entries : order(mileage, function(x) { return x.toDate; }, descComparator)
 					}
 				});
 
