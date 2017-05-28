@@ -8,7 +8,7 @@ import StringIO
 from flask import Flask, request, jsonify, make_response
 from flask.json import JSONEncoder
 
-from dao import CarLogDB, UsersTable, VehiclesTable, MileageTable, MaintenanceTable, EventsTable, ProvidersTable, ProviderTypesTable, DestinationsTable
+from dao import CarLogDB, DriversTable, VehiclesTable, MileageTable, MaintenanceTable, EventsTable, ProvidersTable, ProviderTypesTable, DestinationsTable
 from exploratoryAnalysis import MileageData, Estimator, Summarizer
 
 DB_PATH = "/var/www/carLog/db/carLog.db"
@@ -52,30 +52,30 @@ def csvResponse(xs, fieldnames = None, fileName = "export.csv"):
 	response.mimetype = "text/csv"
 	return response
 
-# Users -----------------------------------------------------------------------
+# Drivers -----------------------------------------------------------------------
 
-@application.route("/users", methods=["POST"])
-def addOrUpdateUser():
-        with UsersTable(DB_PATH) as db:
+@application.route("/drivers", methods=["POST"])
+def addOrUpdateDriver():
+        with DriversTable(DB_PATH) as db:
                 results = db.add(request.get_json())
         return jsonify(results)
 
-@application.route("/users", methods=["GET"])
-def findAllUsers():
-        with UsersTable(DB_PATH) as db:
+@application.route("/drivers", methods=["GET"])
+def findAllDrivers():
+        with DriversTable(DB_PATH) as db:
                 results = db.findAll()
         return jsonify(results)
 
-@application.route("/users/<userId>", methods=["GET"])
-def findUser(userId):
-        with UsersTable(DB_PATH) as db:
-                results = db.find(userId)
+@application.route("/drivers/<driverId>", methods=["GET"])
+def findDriver(driverId):
+        with DriversTable(DB_PATH) as db:
+                results = db.find(driverId)
         return jsonify(results)
 
-@application.route("/users/<userId>", methods=["DELETE"])
-def removeUser(userId):
-        with UsersTable(DB_PATH) as db:
-                results = db.remove(userId)
+@application.route("/drivers/<driverId>", methods=["DELETE"])
+def removeDriver(driverId):
+        with DriversTable(DB_PATH) as db:
+                results = db.remove(driverId)
         return jsonify(results)
 
 # Vehicles --------------------------------------------------------------------
@@ -92,10 +92,10 @@ def findAllVehicles():
 		results = db.findAll()
 	return jsonify(results)
 
-@application.route("/users/<userId>/vehicles", methods=["GET"])
-def findVehiclesByUserId(userId):
+@application.route("/drivers/<driverId>/vehicles", methods=["GET"])
+def findVehiclesByDriverId(driverId):
 	with VehiclesTable(DB_PATH) as db:
-		results = db.findByUserId(userId)
+		results = db.findByDriverId(driverId)
 	return jsonify(results)
 
 @application.route("/vehicles/<vehicleId>", methods=["GET"])

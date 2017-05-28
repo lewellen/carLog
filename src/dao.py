@@ -42,9 +42,9 @@ class CarLogDB(object):
 			return datetime.datetime.strptime(value, "%Y-%m-%d")
 
 
-class UsersTable(CarLogDB):
+class DriversTable(CarLogDB):
 	def __init__(self, sqlite3DbPath):
-		super(UsersTable, self).__init__(sqlite3DbPath)
+		super(DriversTable, self).__init__(sqlite3DbPath)
 
 	def __tupleToDict(self, result):
 		return {
@@ -54,7 +54,7 @@ class UsersTable(CarLogDB):
 
 	def add(self, entry):
 		if entry is None:
-			return self.getResult(None, "User cannot be empty.")
+			return self.getResult(None, "Driver cannot be empty.")
 
 		if "id" in entry and int(entry["id"]) > 0:
 			return self.update(entry)
@@ -69,7 +69,7 @@ class UsersTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("insert into users (name) values (?)", (entry["name"],))
+			c.execute("insert into drivers (name) values (?)", (entry["name"],))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:
@@ -77,20 +77,20 @@ class UsersTable(CarLogDB):
 
 	def find(self, destinationId):
 		c = self.conn.cursor()
-		c.execute("select id, name from users where id = ?", (destinationId,))
+		c.execute("select id, name from drivers where id = ?", (destinationId,))
 		result = c.fetchone()
 		return self.__tupleToDict(result)
 
 	def findAll(self):
 		c = self.conn.cursor()
-		c.execute("select id, name from users")
+		c.execute("select id, name from drivers")
 		results = c.fetchall()
 		return map(lambda x : self.__tupleToDict(x), results)
 
 	def remove(self, entryId):
 		try:
 			c = self.conn.cursor()
-			c.execute("delete from users where id = ?", (entryId,))
+			c.execute("delete from drivers where id = ?", (entryId,))
 			self.conn.commit()
 			return self.getResult(entryId, c.rowcount == 1, None)
 		except sqlite3.Error, e:
@@ -98,7 +98,7 @@ class UsersTable(CarLogDB):
 
 	def update(self, entry):
 		if entry is None:
-			return self.getResult(None, "User cannot be empty.")
+			return self.getResult(None, "Driver cannot be empty.")
 
 		if "id" in entry and int(entry["id"]) < 0:
 			return self.add(entry)
@@ -114,7 +114,7 @@ class UsersTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("update users set name = ? where id = ?", (entry["name"], entry["id"]))
+			c.execute("update drivers set name = ? where id = ?", (entry["name"], entry["id"]))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:
@@ -127,7 +127,7 @@ class VehiclesTable(CarLogDB):
 	def __tupleToDict(self, result):
 		return {
 			"id" : int(operator.itemgetter(0)(result)),
-			"userId" : int(operator.itemgetter(1)(result)),
+			"driverId" : int(operator.itemgetter(1)(result)),
 			"vin" : operator.itemgetter(2)(result),
 			"make" : operator.itemgetter(3)(result),
 			"model" : operator.itemgetter(4)(result),
@@ -143,7 +143,7 @@ class VehiclesTable(CarLogDB):
 			return self.update(entry)
 
 		validator = DictValidator([
-			KeyValidator(entry, "userId").existsPositiveInteger(),
+			KeyValidator(entry, "driverId").existsPositiveInteger(),
 			KeyValidator(entry, "vin").existsNotNullShorterThan(256),
 			KeyValidator(entry, "make").existsNotNullShorterThan(256),
 			KeyValidator(entry, "model").existsNotNullShorterThan(256),
@@ -157,7 +157,7 @@ class VehiclesTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("insert into vehicles (userId, vin, make, model, year, stillOwn) values (?, ?, ?, ?, ?, ?)", (entry["userId"], entry["vin"], entry["make"], entry["model"], entry["year"], entry["stillOwn"]))
+			c.execute("insert into vehicles (driverId, vin, make, model, year, stillOwn) values (?, ?, ?, ?, ?, ?)", (entry["driverId"], entry["vin"], entry["make"], entry["model"], entry["year"], entry["stillOwn"]))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:
@@ -165,19 +165,19 @@ class VehiclesTable(CarLogDB):
 
 	def find(self, vehicleId):
 		c = self.conn.cursor()
-		c.execute("select id, userId, vin, make, model, year, stillOwn from vehicles where id = ?", (vehicleId,))
+		c.execute("select id, driverId, vin, make, model, year, stillOwn from vehicles where id = ?", (vehicleId,))
 		result = c.fetchone()
 		return self.__tupleToDict(result)
 
 	def findAll(self):
 		c = self.conn.cursor()
-		c.execute("select id, userId, vin, make, model, year, stillOwn from vehicles")
+		c.execute("select id, driverId, vin, make, model, year, stillOwn from vehicles")
 		results = c.fetchall()
 		return map(lambda x : self.__tupleToDict(x), results)
 
-	def findByUserId(self, userId):
+	def findByDriverId(self, driverId):
 		c = self.conn.cursor()
-		c.execute("select id, userId, vin, make, model, year, stillOwn from vehicles where userId = ?", userId)
+		c.execute("select id, driverId, vin, make, model, year, stillOwn from vehicles where driverId = ?", driverId)
 		results = c.fetchall()
 		return map(lambda x : self.__tupleToDict(x), results)
 
@@ -199,7 +199,7 @@ class VehiclesTable(CarLogDB):
 
 		validator = DictValidator([
 			KeyValidator(entry, "id").existsPositiveInteger(),
-			KeyValidator(entry, "userId").existsPositiveInteger(),
+			KeyValidator(entry, "driverId").existsPositiveInteger(),
 			KeyValidator(entry, "vin").existsNotNullShorterThan(256),
 			KeyValidator(entry, "make").existsNotNullShorterThan(256),
 			KeyValidator(entry, "model").existsNotNullShorterThan(256),
@@ -213,7 +213,7 @@ class VehiclesTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("update vehicles set userId = ?, vin = ?, make = ?, model = ?, year = ?, stillOwn = ? where id = ?", (entry["userId"], entry["vin"], entry["make"], entry["model"], entry["year"], entry["stillOwn"], entry["id"]))
+			c.execute("update vehicles set driverId = ?, vin = ?, make = ?, model = ?, year = ?, stillOwn = ? where id = ?", (entry["driverId"], entry["vin"], entry["make"], entry["model"], entry["year"], entry["stillOwn"], entry["id"]))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:

@@ -1,17 +1,17 @@
-create table users (
+create table drivers (
 	id integer primary key asc not null,
 	name varchar(256) not null
 );
 
 create table vehicles (
 	id integer primary key asc not null,
-	userId integer not null,
+	driverId integer not null,
 	vin varchar(256) not null,
 	make varchar(256) not null,
 	model varchar(256) not null,
 	year integer not null,
 	stillOwn boolean not null,
-	foreign key(userId) references users(id)
+	foreign key(driverId) references drivers(id)
 );
 
 create table providerTypes (
@@ -70,7 +70,7 @@ create table eventEntries(
 	foreign key(vehicleId) references vehicles(id)
 );
 
-insert into users (name) values ("Default");
+insert into drivers (name) values ("Default");
 insert into providerTypes (name) values ("Unknown");
 insert into providers (providerTypeId, name) values (1, "Unknown");
 insert into destinations (name) values ("Unknown");

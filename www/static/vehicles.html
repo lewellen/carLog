@@ -27,7 +27,7 @@
 	$(document).ready(function() {
 		bindAdd("#vehiclesForm", "/rest/vehicles", {
 			id : -1,
-			userId : 1,
+			driverId : 1,
 			vin : "",
 			make : "",
 			model : "",
@@ -37,7 +37,7 @@
 
 		$.ajax({
 			method : "GET",
-			url : "/rest/users/1/vehicles",
+			url : "/rest/drivers/1/vehicles",
 			success : function(results) {
 				new Vue({
 					el : "#vehiclesTable",
@@ -52,11 +52,11 @@
 		});
 
 		$.ajax({
-			url : "rest/users",
+			url : "rest/drivers",
 			timeout: 3000,
 			success : function(results) {
 				new Vue({
-					el: "#userId",
+					el: "#driverId",
 					data : {
 						entries : results
 					}
@@ -77,7 +77,7 @@
 
   <div class="container" style="border-top: 1px solid #666; border-bottom:1px solid #ccc; margin-top:6px; margin-bottom: 8px; padding: 3px; ">
     <div class="span-18">
-      <a href="users.html"><img src="img/fugue/user-silhouette.png" class="icon" /> Users</a> | 
+      <a href="drivers.html"><img src="img/fugue/user-silhouette.png" class="icon" /> Drivers</a> | 
       <a href="vehicles.html"><img src="img/fugue/car.png" class="icon" /> Vehicles</a> | 
       <a href="destinations.html"><img src="img/fugue/marker.png" class="icon" /> Destinations</a> | 
       <a href="providers.html"><img src="img/fugue/card-address.png" class="icon" /> Providers</a>
@@ -94,7 +94,7 @@
         <thead>
           <th></th>
           <th>ID</th>
-          <th>User ID</th>
+          <th>Driver ID</th>
           <th>VIN</th>
           <th>Make</th>
           <th>Model</th>
@@ -106,7 +106,7 @@
           <tr v-for="entry in entries">
             <td></td>
             <td>{{ entry.id }}</td>
-            <td>{{ entry.userId }}</td>
+            <td>{{ entry.driverId }}</td>
             <td>{{ entry.vin }}</td>
             <td>{{ entry.make }}</td>
             <td>{{ entry.model }}</td>
@@ -144,9 +144,9 @@
               <td><input name="year" id="year" type="number" v-bind:value="year" /></td>
             </tr>
             <tr>
-              <td><label for="userId">User</label></td>
+              <td><label for="driverId">Driver</label></td>
               <td>
-                <select id="userId" name="userId">
+                <select id="driverId" name="driverId">
 		  <option v-for="entry in entries" v-bind:value="entry.id">{{ entry.name }}</option>
                 </select>
               </td>
