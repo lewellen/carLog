@@ -39,8 +39,6 @@
             <th></th>
             <th>Date</th>
             <th>Mechanic</th>
-            <th>Contact</th>
-            <th>Phone Number</th>
             <th>Cost ($)</th>
             <th>Description</th>
             <th></th>
@@ -50,9 +48,7 @@
           <tr class="editableRow" v-for="entry in entries">
             <td style="width:16px;"><a class="edit" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/pencil.png" /></a></td>
             <td>{{ entry.at }}</td>
-            <td>{{ entry.provider }}</td>
-            <td>{{ entry.primaryContact }}</td>
-            <td>{{ entry.phoneNumber }}</td>
+            <td>{{ entry.provider }} <span class="quiet small">{{ entry.primaryContact }} {{ entry.phoneNumber }}</span></td>
             <td>{{ entry.cost }}</td>
             <td>{{ entry.description }}</td>
             <td style="width:16px;"><a class="remove" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/minus-circle.png" /></a></td>
