@@ -24,7 +24,7 @@
       <a href="events.html"><img src="img/fugue/sticky-note.png" class="icon" /> Events</a>
     </div>
     <div class="span-6 last" style="text-align:right;">
-      <a id="exportCsv" href="/rest/vehicles/1/mileage/csv"><img src="img/fugue/document-excel-csv.png" class="icon" /> Export CSV</a>
+      <a id="exportCSV"><img src="img/fugue/document-excel-csv.png" class="icon" /> Export CSV</a>
       <a id="addEntry"><img src="img/fugue/plus-circle.png" class="icon" /> Add Entry</a>
     </div>
   </div>
@@ -162,6 +162,8 @@
 			pricePerGallon : 0,
 			vehicleId : vehicleId 
 		});
+
+		$("#exportCSV").attr("href", "/rest/vehicles/" + vehicleId + "/mileage/csv")
 
 		$.ajax({
 			url: "/rest/vehicles/" + vehicleId + "/mileage",

@@ -24,7 +24,7 @@
     </div>
 
     <div class="span-6 last" style="text-align:right;">
-      <a id="exportCsv" href="/rest/vehicles/1/maintenance/csv"><img src="img/fugue/document-excel-csv.png" class="icon" /> Export CSV</a>
+      <a id="exportCSV"><img src="img/fugue/document-excel-csv.png" class="icon" /> Export CSV</a>
       <a id="addEntry"><img src="img/fugue/plus-circle.png" class="icon" /> Add Entry</a>
     </div>
   </div>
@@ -139,6 +139,8 @@
 			description : "",
 			cost : 0
 		});
+
+		$("#exportCSV").attr("href", "/rest/vehicles/" + vehicleId + "/maintenance/csv")
 
 		$.ajax({
 			url: "/rest/vehicles/" + vehicleId + "/maintenance",
