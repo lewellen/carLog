@@ -50,7 +50,7 @@
           <tr class="editableRow" v-for="entry in entries">
             <td style="width:16px;"><a class="edit" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/pencil.png" /></a></td>
             <td>{{ entry.at }}</td>
-            <td>{{ entry.providerId }}</td>
+            <td>{{ entry.provider }}</td>
             <td>{{ entry.primaryContact }}</td>
             <td>{{ entry.phoneNumber }}</td>
             <td>{{ entry.cost }}</td>
@@ -142,37 +142,6 @@
 
 		$("#exportCSV").attr("href", "/rest/vehicles/" + vehicleId + "/maintenance/csv")
 
-		$.ajax({
-			url: "/rest/vehicles/" + vehicleId + "/maintenance",
-			timeout: 3000,
-			success : function(maintenance) {
-				new Vue({
-					el: "#maintenanceTable",
-					data : {
-						entries : order(maintenance, function(x) { return x.at; }, descComparator)
-					}
-				});
-
-				$(".editableRow")
-					.mouseenter(function() {
-						$(this).find(".edit").show();
-						$(this).find(".remove").show();
-					})
-					.mouseleave(function() {
-						$(this).find(".edit").hide();
-						$(this).find(".remove").hide();
-					});
-
-				bindEdit("#maintenanceForm", "/rest/maintenance", function(entry) {
-					$("#providerId").val(entry.providerId);
-				});
-
-				bindRemove("/rest/maintenance");
-			},
-			fail : function() {
-				$("#messageBox").text("Failed to load maintenance information");
-			}
-		});
 
 		$.ajax({
 			url : "rest/providers",
@@ -184,6 +153,44 @@
 						entries : providers
 					}
 				});
+
+				$.ajax({
+					url: "/rest/vehicles/" + vehicleId + "/maintenance",
+					timeout: 3000,
+					success : function(maintenance) {
+						nameFromProviderId = new Map(providers.map((x) => [x.id, x.name]))
+						for(var i = 0, len = maintenance.length; i < len; ++i) {
+							maintenance[i]["provider"] = nameFromProviderId.get(maintenance[i]["providerId"])
+						}
+
+						new Vue({
+							el: "#maintenanceTable",
+							data : {
+								entries : order(maintenance, function(x) { return x.at; }, descComparator)
+							}
+						});
+
+						$(".editableRow")
+							.mouseenter(function() {
+								$(this).find(".edit").show();
+								$(this).find(".remove").show();
+							})
+							.mouseleave(function() {
+								$(this).find(".edit").hide();
+								$(this).find(".remove").hide();
+							});
+
+						bindEdit("#maintenanceForm", "/rest/maintenance", function(entry) {
+							$("#providerId").val(entry.providerId);
+						});
+
+						bindRemove("/rest/maintenance");
+					},
+					fail : function() {
+						$("#messageBox").text("Failed to load maintenance information");
+					}
+				});
+
 			}
 		});
 	});

@@ -43,7 +43,7 @@
           <tr v-for="entry in entries">
             <td></td>
             <td>{{ entry.id }}</td>
-            <td>{{ entry.providerTypeId }}</td>
+            <td>{{ entry.providerType }}</td>
             <td>{{ entry.name }}</td>
             <td>{{ entry.address }}</td>
             <td></td>
@@ -98,37 +98,42 @@
 
   <script type="text/javascript">
 	$(document).ready(function() {
-		bindAdd("#providersForm", "/rest/providers", {
-			id : -1,
-			providerTypeId : 1,
-			name : "",
-			address : ""
-		});
-
-		$.ajax({
-			method : "GET",
-			url : "/rest/providers",
-			success : function(results) {
-				new Vue({
-					el : "#providersTable",
-					data : {
-						entries : results
-					}
-				});
-			},
-			fail : function(result) {
-				$("#messageBox").html(result);
-			}
-		});
-
 		$.ajax({
 			url : "rest/providerTypes",
 			timeout: 3000,
-			success : function(results) {
+			success : function(providerTypes) {
 				new Vue({
 					el: "#providerTypeId",
 					data : {
-						entries : results
+						entries : providerTypes
+					}
+				});
+
+				bindAdd("#providersForm", "/rest/providers", {
+					id : -1,
+					providerTypeId : 1,
+					name : "",
+					address : ""
+				});
+
+				$.ajax({
+					method : "GET",
+					url : "/rest/providers",
+					success : function(results) {
+						nameFromProviderTypeId = new Map(providerTypes.map((x) => [x.id, x.name]))
+						for(var i = 0, len = results.length; i < len; ++i) {
+							results[i]["providerType"] = nameFromProviderTypeId.get(results[i]["providerTypeId"])
+						}
+
+						new Vue({
+							el : "#providersTable",
+							data : {
+								entries : results
+							}
+						});
+					},
+					fail : function(result) {
+						$("#messageBox").html(result);
 					}
 				});
 			}

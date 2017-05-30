@@ -66,7 +66,7 @@
             <td>{{ (Math.round(100.0 * entry.gallons * entry.pricePerGallon) / 100.0) }}</td>
             <td>{{ (Math.round(10.0 * entry.tripMileage / entry.gallons) / 10.0) }}</td>
             <td>{{ (Math.round(1000.0 * entry.gallons * entry.pricePerGallon / entry.tripMileage) / 1000.0) }}</td>
-            <td>{{ entry.destinationId }}</td>
+            <td>{{ entry.destination }}</td>
             <td style="width:16px;"><a class="remove" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/minus-circle.png" /></a></td>
           </tr>
         </tbody>
@@ -166,39 +166,58 @@
 		$("#exportCSV").attr("href", "/rest/vehicles/" + vehicleId + "/mileage/csv")
 
 		$.ajax({
-			url: "/rest/vehicles/" + vehicleId + "/mileage",
+			url : "rest/destinations",
 			timeout: 3000,
-			success : function(mileage) {
-				mpgPpmFigure("mileageChart", mileage);
-
+			success : function(destinations) {
 				new Vue({
-					el: "#mileageTable",
+					el: "#destinationId",
 					data : {
-						entries : order(mileage, function(x) { return x.toDate; }, descComparator)
+						entries : destinations
 					}
 				});
 
-				$(".editableRow")
-					.mouseenter(function() {
-						$(this).find(".edit").show();
-						$(this).find(".remove").show();
-					})
-					.mouseleave(function() {
-						$(this).find(".edit").hide();
-						$(this).find(".remove").hide();
-					});
+				$.ajax({
+					url: "/rest/vehicles/" + vehicleId + "/mileage",
+					timeout: 3000,
+					success : function(mileage) {
+						nameFromDestinationId = new Map(destinations.map((x) => [x.id, x.name]))
+						for(var i = 0, len = mileage.length; i < len; ++i) {
+							mileage[i]["destination"] = nameFromDestinationId.get(mileage[i]["destinationId"])
+						}
 
-				bindEdit("#mileageForm", "/rest/mileage", function(entry) {
-					$("#providerId").val(entry.providerId);
-					$("#destinationId").val(entry.destinationId);
+						mpgPpmFigure("mileageChart", mileage);
+
+						new Vue({
+							el: "#mileageTable",
+							data : {
+								entries : order(mileage, function(x) { return x.toDate; }, descComparator)
+							}
+						});
+
+						$(".editableRow")
+							.mouseenter(function() {
+								$(this).find(".edit").show();
+								$(this).find(".remove").show();
+							})
+							.mouseleave(function() {
+								$(this).find(".edit").hide();
+								$(this).find(".remove").hide();
+							});
+
+						bindEdit("#mileageForm", "/rest/mileage", function(entry) {
+							$("#providerId").val(entry.providerId);
+							$("#destinationId").val(entry.destinationId);
+						});
+
+						bindRemove("/rest/mileage");
+					},
+					fail : function() {
+						$("#messageBox").text("Failed to load mileage information");
+					}
 				});
-
-				bindRemove("/rest/mileage");
-			},
-			fail : function() {
-				$("#messageBox").text("Failed to load mileage information");
 			}
 		});
+
 
 		$.ajax({
 			url : "rest/providers",
@@ -213,18 +232,6 @@
 			}
 		});
 
-		$.ajax({
-			url : "rest/destinations",
-			timeout: 3000,
-			success : function(destinations) {
-				new Vue({
-					el: "#destinationId",
-					data : {
-						entries : destinations
-					}
-				});
-			}
-		});
 	});
   </script>
 </body>
