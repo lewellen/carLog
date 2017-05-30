@@ -1,81 +1,22 @@
-<html>
-  <head>
-    <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection"/>
-    <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print" /> 
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection" />
-    <![endif]-->
+<head>
+  <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection"/>
+  <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print" /> 
+  <!--[if lt IE 8]>
+  <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection" />
+  <![endif]-->
 
-    <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css" /> 
- 
-    <link rel="stylesheet" href="css/index.css" type="text/css" /> 
+  <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css" /> 
+  <link rel="stylesheet" href="css/index.css" type="text/css" /> 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+  <script src="js/template.js"></script>
+  <script src="js/template-common.js"></script>
+  <link rel="import" href="./templates/common.html" onload="loadCommon(event)">
+</head>
+<body>
+  <div id="header"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
-
-    <script src="js/crud.js"></script> 
-    <script src="js/figures.js"></script> 
-
-    <title>CarLog</title>
-  </head>
-  <body>
-
-  <script type="text/javascript">
-	$(document).ready(function() {
-		bindAdd("#eventsForm", "/rest/events", {
-			id : -1,
-			at : toISO8601DateStr(new Date()),
-			odometer : 0,
-			description : "",
-			vehicleId : 1
-		});
-
-		$.ajax({
-			url: "/rest/vehicles/1/events",
-			timeout: 3000,
-			success : function(events) {
-				new Vue({
-					el: "#eventsTable",
-					data : {
-						entries : order(events, function(x) { return x.at; }, descComparator)
-					}
-				});
-
-				$(".editableRow")
-					.mouseenter(function() {
-						$(this).find(".edit").show();
-						$(this).find(".remove").show();
-					})
-					.mouseleave(function() {
-						$(this).find(".edit").hide();
-						$(this).find(".remove").hide();
-					});
-
-				bindEdit("#eventsForm", "/rest/events");
-
-				bindRemove("/rest/events");
-			},
-			fail : function() {
-				$("#messageBox").text("Failed to load events information");
-			}
-		});
-	});
-  </script>
-
-  <div class="container">
-    <div class="span-6" style="font-weight:bold;">
-      <a href="index.html"><img width="32" height="32" src="img/car.png" class="icon" /> carlog</a>
-    </div>
-    <div class="span-18 last" style="text-align:right;">
-      <a href="settings.html"><img src="img/fugue/gear.png" class="icon" /> Settings</a>
-    </div>
-  </div>
-
-  <div class="container" style="border-top: 1px solid #666; border-bottom:1px solid #ccc; margin-top:6px; margin-bottom: 8px; padding: 3px; ">
-    <div class="span-18">
+  <div class="container" style="border-bottom:1px solid #ccc; margin-bottom:1em; padding-top:0.25em; padding-bottom:0.25em;">
+    <div id="vehicleMenu" class="span-18">
       <a href="dashboard.html"><img src="img/fugue/dashboard.png" class="icon" /> Dashboard</a> | 
       <a href="mileage.html"><img src="img/fugue/counter.png" class="icon" /> Mileage</a> | 
       <a href="maintenance.html"><img src="img/fugue/wrench.png" class="icon" /> Maintenance</a> | 
@@ -115,13 +56,9 @@
         </tfoot>
       </table>
     </div>
-
-    <hr />
-
-    <div style="color: #666666; text-align:center;">
-      &copy; 2017-Present Lewellen <img src="img/fugue/creative-commons.png" /> Attribution-NonCommercial-NoDerivs CC BY-NC-ND
-    </div>
   </div>
+
+  <div id="footer"></div>
 
   <div style="display:none;">
     <div id="eventsForm" style="padding: 10px; background:#fff;">
@@ -153,4 +90,61 @@
       </form> 
     </div>
   </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+
+  <script src="js/crud.js"></script> 
+  <script src="js/figures.js"></script> 
+
+  <script type="text/javascript">
+	$(document).ready(function() {
+		var params = new URLSearchParams(document.location.search)
+		var vehicleId = params.get("id")
+		$("#vehicleMenu").find("a").each(function(){
+			$(this).attr("href", $(this).attr("href") + "?id=" + vehicleId)
+		});
+
+		bindAdd("#eventsForm", "/rest/events", {
+			id : -1,
+			at : toISO8601DateStr(new Date()),
+			odometer : 0,
+			description : "",
+			vehicleId : vehicleId
+		});
+
+		$.ajax({
+			url: "/rest/vehicles/" + vehicleId + "/events",
+			timeout: 3000,
+			success : function(events) {
+				new Vue({
+					el: "#eventsTable",
+					data : {
+						entries : order(events, function(x) { return x.at; }, descComparator)
+					}
+				});
+
+				$(".editableRow")
+					.mouseenter(function() {
+						$(this).find(".edit").show();
+						$(this).find(".remove").show();
+					})
+					.mouseleave(function() {
+						$(this).find(".edit").hide();
+						$(this).find(".remove").hide();
+					});
+
+				bindEdit("#eventsForm", "/rest/events");
+
+				bindRemove("/rest/events");
+			},
+			fail : function() {
+				$("#messageBox").text("Failed to load events information");
+			}
+		});
+	});
+  </script>
+</body>
 </html>

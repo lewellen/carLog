@@ -1,27 +1,89 @@
 <html>
-  <head>
-    <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection"/>
-    <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print" /> 
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection" />
-    <![endif]-->
+<head>
+  <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection"/>
+  <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print" /> 
+  <!--[if lt IE 8]>
+  <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection" />
+  <![endif]-->
 
-    <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css" /> 
- 
-    <link rel="stylesheet" href="css/index.css" type="text/css" /> 
+  <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css" /> 
+  <link rel="stylesheet" href="css/index.css" type="text/css" /> 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+  <script src="js/template.js"></script>
+  <script src="js/template-common.js"></script>
+  <link rel="import" href="./templates/common.html" onload="loadCommon(event)">
+</head>
+<body>
+  <div id="header"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+  <div class="container" style="border-bottom:1px solid #ccc; margin-bottom:1em; padding-top:0.25em; padding-bottom:0.25em;">
+    <div id="vehicleMenu" class="span-18">
+      <a href="dashboard.html"><img src="img/fugue/dashboard.png" class="icon" /> Dashboard</a> | 
+      <a href="mileage.html"><img src="img/fugue/counter.png" class="icon" /> Mileage</a> | 
+      <a href="maintenance.html"><img src="img/fugue/wrench.png" class="icon" /> Maintenance</a> | 
+      <a href="events.html"><img src="img/fugue/sticky-note.png" class="icon" /> Events</a>
+    </div>
+    <div class="span-6 last" style="text-align:right;">
+    </div>
+  </div>
 
-    <script src="js/crud.js"></script> 
-    <script src="js/figures.js"></script> 
+  <div id="dashboard" class="container">
+    <div class="span-24 last">
+      <h2>Cost Summary</h2>
+    </div>
 
-    <title>CarLog</title>
-  </head>
-  <body>
+    <div class="span-24 last">
+      <div id="fuelCostSummary" class="span-12"></div>
+      <div id="maintenanceCostSummary" class="span-12 last"></div>
+    </div>
+
+    <div class="span-24 last">
+      <h2>Vehicle Estimates</h2>
+    </div>
+
+    <div class="span-24 last">
+      <div id="tankSize" class="span-8"></div>
+      <div id="mpg" class="span-8"></div>
+      <div id="range" class="span-8 last"></div>
+    </div>
+
+    <div class="span-24 last">
+      <h2>Inferred Economy</h2>
+    </div>
+
+    <div class="span-24 last">
+      <div id="ppm" class="span-8"></div>
+      <div id="fuelCosts" class="span-8"></div>
+      <div id="ppd" class="span-8 last"></div>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <template id="summaryTile-template">
+    <div style="text-align:center;">
+      <h3 id="heading"></h3>
+      <div id="total" style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em; margin-bottom: 1em;"></div>
+      <canvas id="chart" height="150"></canvas>
+    </div>
+  </template>
+
+  <template id="estimateTile-template">
+    <div style="text-align:center;">
+      <h3 id="heading"></h3>
+      <div id="mean" style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;"></div>
+      <span id="confidenceInterval" class="small quiet"></span>
+      <span id="unit" class="small quiet"></span>
+      <canvas id="chart" height="150"></canvas>
+    </div>
+  </template>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+
+  <script src="js/crud.js"></script> 
+  <script src="js/figures.js"></script> 
 
   <script type="text/javascript">
 	function round(x, numDigits) {
@@ -29,8 +91,8 @@
 		return Math.round(c * x) / c;
 	}
 
-	function tileBarChart(def) {
-		var ctx = document.getElementById(def.canvasId).getContext("2d");
+	function tileBarChart(canvasEl, def) {
+		var ctx = canvasEl.getContext("2d")
 		var chart = new Chart(ctx, {
 			type: 'bar',
 			data : {
@@ -82,169 +144,90 @@
 		});
 	}
 
-	function populateCostSummaryTile(tileId, canvasId, data) {
+	function populateCostSummaryTile(clone, data, heading) {
 		data.total = round(data.total, 2);
 
-		new Vue({
-			el: tileId,
-			data : data
-		});
+		for(var i = 0; i < data.dateTotals.length; ++i) {
+			data.dateTotals[i] = round(data.dateTotals[i], 2)
+		}
 
-		tileBarChart({
-			canvasId: canvasId,
+		clone.querySelector("#heading").innerHTML = heading;
+		clone.querySelector("#total").innerHTML = "$" + data.total;
+
+		tileBarChart(clone.querySelector("#chart"), {
 			binCenters: data.dateBins,
 			binCounts: data.dateTotals,
-			fit : null,
-			numDigits: 2,
+			numDigits: 0,
 			xLabel: "Date",
 			yLabel: "Total ($)"
 		});
 	}
 
-	function populateEstimateTile(tileId, canvasId, data, xLabel, numDigits) {
+	function populateEstimateTile(clone, data, heading, unit, numDigits) {
 		data.params.loc = round(data.params.loc, numDigits);
 		data.params.interval[0] = round(data.params.interval[0], numDigits);
 		data.params.interval[1] = round(data.params.interval[1], numDigits);
 
-		new Vue({
-			el: tileId,
-			data : data.params
-		});
+		clone.querySelector("#heading").innerHTML = heading;
+		clone.querySelector("#mean").innerHTML = data.params.loc;
+		clone.querySelector("#confidenceInterval").innerHTML = "95% CI: " + data.params.interval[0] + " - " + data.params.interval[1];
+		clone.querySelector("#unit").innerHTML = unit;
 
-		tileBarChart({
-			canvasId: canvasId,
+		tileBarChart(clone.querySelector("#chart"), {
 			binCenters: data.binCenters,
 			binCounts: data.binCounts,
 			fit : data.fit,
 			numDigits: numDigits,
-			xLabel: xLabel,
+			xLabel: heading + " " + unit,
 			yLabel: "Frequency"
 		});
 	}
 	
 	$(document).ready(function() {
+		var params = new URLSearchParams(document.location.search)
+		var vehicleId = params.get("id")
+		$("#vehicleMenu").find("a").each(function(){
+			$(this).attr("href", $(this).attr("href") + "?id=" + vehicleId)
+		});
+
 		$.ajax({
 			method : "GET",
-			url : "/rest/vehicles/1/costSummary",
+			url : "/rest/vehicles/" + vehicleId + "/costSummary",
 			success : function(results) {
 				tileIds = ["#fuelCostSummary", "#maintenanceCostSummary"];
-				chartIds = ["fuelCostSummaryChart", "maintenanceCostSummaryChart"];
+				headings = ["Fuel", "Maintenance"]
 				data = [results.fuel, results.maintenance];
 
 				for(var i = 0; i < 2; ++i) {
-					populateCostSummaryTile(tileIds[i], chartIds[i], data[i]);
+					var template = document.querySelector("#summaryTile-template")
+					var placeholder = document.querySelector(tileIds[i])
+					var clone = document.importNode(template.content, true)
+					populateCostSummaryTile(clone, data[i], headings[i]);
+					placeholder.appendChild(clone)
 				}
 			}
 		});
 
 		$.ajax({
 			method : "GET",
-			url : "/rest/vehicles/1/estimates",
+			url : "/rest/vehicles/" + vehicleId + "/estimates",
 			success : function(results) {
 				tileIds = ["#tankSize", "#mpg", "#range", "#ppm", "#fuelCosts", "#ppd"];
-				chartIds = ["tankSizeChart", "mpgChart", "rangeChart", "ppmChart", "fuelCostsChart", "ppdChart"];
-				xlabels = ["Refill (gal)", "Fuel Economy (mi/gal)", "Trip Distance (mi)", "Price Per Mile ($/mi)", "Extended Amount ($)", "Price Per Day ($/day)"];
 				data = [results.tank, results.mpg, results.range, results.ppm, results.fuelCosts, results.ppd];
+				headings = ["Refill", "Fuel Economy", "Range", "Price Per Mile", "Refill Cost", "Price Per Day"]
+				units = ["(gal)", "(mi/gal)", "(mi)", "($/mi)", "($)", "($/day)"]
 				numDigits = [ 1, 1, 1, 3, 2, 2];
 
 				for(var i = 0; i < 6; ++i) { 
-					populateEstimateTile(
-						tileIds[i], chartIds[i], data[i], xlabels[i],
-						numDigits[i]
-					);
+					var template = document.querySelector("#estimateTile-template")
+					var placeholder = document.querySelector(tileIds[i])
+					var clone = document.importNode(template.content, true)
+					populateEstimateTile(clone, data[i], headings[i], units[i], numDigits[i])
+					placeholder.appendChild(clone)
 				}
 			}
 		});
 	});
   </script>
-
-  <div class="container">
-    <div class="span-6" style="font-weight:bold;">
-      <a href="index.html"><img width="32" height="32" src="img/car.png" class="icon" /> carlog</a>
-    </div>
-    <div class="span-18 last" style="text-align:right;">
-      <a href="settings.html"><img src="img/fugue/gear.png" class="icon" /> Settings</a>
-    </div>
-  </div>
-
-  <div class="container" style="border-top: 1px solid #666; border-bottom:1px solid #ccc; margin-top:6px; margin-bottom: 8px; padding: 3px; ">
-    <div class="span-18">
-      <a href="dashboard.html"><img src="img/fugue/dashboard.png" class="icon" /> Dashboard</a> | 
-      <a href="mileage.html"><img src="img/fugue/counter.png" class="icon" /> Mileage</a> | 
-      <a href="maintenance.html"><img src="img/fugue/wrench.png" class="icon" /> Maintenance</a> | 
-      <a href="events.html"><img src="img/fugue/sticky-note.png" class="icon" /> Events</a>
-    </div>
-
-    <div class="span-6 last" style="text-align:right;">
-    </div>
-  </div>
-
-  <div id="dashboard" class="container">
-    <div class="span-24 last">
-      <h2>Cost Summary</h2>
-    </div>
-
-    <div class="span-24 last">
-      <div id="fuelCostSummary" class="span-12" style="text-align:center;">
-        <h3>Fuel</h3>
-        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">$ {{ total }}</div>
-        <canvas id="fuelCostSummaryChart" height="150"></canvas>
-      </div>
-      <div id="maintenanceCostSummary" class="span-12 last" style="text-align:center;">
-        <h3>Maintenance</h3>
-        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">$ {{ total }}</div>
-        <canvas id="maintenanceCostSummaryChart" height="150"></canvas>
-      </div>
-    </div>
-
-    <div class="span-24 last">
-      <h2>Vehicle Estimates</h2>
-    </div>
-
-    <div class="span-24 last">
-      <div id="tankSize" class="span-8" style="text-align:center;">
-        <h3>Tank Size</h3>
-        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
-        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">(gal)</span>
-        <canvas id="tankSizeChart" height="150"></canvas>
-      </div>
-      <div id="mpg" class="span-8" style="text-align:center;">
-        <h3>MPG</h3>
-        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
-        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">(mi/gal)</span>
-        <canvas id="mpgChart" height="150"></canvas>
-      </div>
-      <div id="range" class="span-8 last" style="text-align:center;">
-        <h3>Range</h3>
-        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
-        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">(mi)</span>
-        <canvas id="rangeChart" height="150"></canvas>
-      </div>
-    </div>
-
-    <div class="span-24 last">
-      <h2>Inferred Economy</h2>
-    </div>
-
-    <div class="span-24 last">
-      <div id="ppm" class="span-8" style="text-align:center;">
-        <h3>Price Per Mile</h3>
-        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
-        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">($/mi)</span>
-        <canvas id="ppmChart" height="150"></canvas>
-      </div>
-      <div id="fuelCosts" class="span-8" style="text-align:center;">
-        <h3>Fuel Costs</h3>
-        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
-        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">($)</span>
-        <canvas id="fuelCostsChart" height="150"></canvas>
-      </div>
-      <div id="ppd" class="span-8 last" style="text-align:center;">
-        <h3>Price Per Day</h3>
-        <div style="font-weight: bold; background-color: #efd; border: 1px solid #dec; font-size: 1.5em;">{{ loc }}</div>
-        <span class="small quiet">95% CI: {{ interval[0] }} - {{ interval[1] }}</span> <span class="small quiet">($/day)</span>
-        <canvas id="ppdChart" height="150"></canvas>
-      </div>
-    </div>
-  </div>
+</body>
 </html>

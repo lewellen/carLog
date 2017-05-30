@@ -1,30 +1,157 @@
 <html>
-  <head>
-    <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection"/>
-    <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print" /> 
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection" />
-    <![endif]-->
+<head>
+  <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection"/>
+  <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print" /> 
+  <!--[if lt IE 8]>
+  <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection" />
+  <![endif]-->
 
-    <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css" /> 
- 
-    <link rel="stylesheet" href="css/index.css" type="text/css" /> 
+  <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css" /> 
+  <link rel="stylesheet" href="css/index.css" type="text/css" /> 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+  <script src="js/template.js"></script>
+  <script src="js/template-common.js"></script>
+  <link rel="import" href="./templates/common.html" onload="loadCommon(event)">
+</head>
+<body>
+  <div id="header"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+  <div class="container" style="border-bottom:1px solid #ccc; margin-bottom:1em; padding-top:0.25em; padding-bottom:0.25em;">
+    <div id="vehicleMenu" class="span-18">
+      <a href="dashboard.html"><img src="img/fugue/dashboard.png" class="icon" /> Dashboard</a> | 
+      <a href="mileage.html"><img src="img/fugue/counter.png" class="icon" /> Mileage</a> | 
+      <a href="maintenance.html"><img src="img/fugue/wrench.png" class="icon" /> Maintenance</a> | 
+      <a href="events.html"><img src="img/fugue/sticky-note.png" class="icon" /> Events</a>
+    </div>
+    <div class="span-6 last" style="text-align:right;">
+      <a id="exportCsv" href="/rest/vehicles/1/mileage/csv"><img src="img/fugue/document-excel-csv.png" class="icon" /> Export CSV</a>
+      <a id="addEntry"><img src="img/fugue/plus-circle.png" class="icon" /> Add Entry</a>
+    </div>
+  </div>
 
-    <script src="js/crud.js"></script> 
-    <script src="js/figures.js"></script> 
+  <div class="container">
+    <div id="messageBox" class="span-24 last"></div>
 
-    <title>CarLog</title>
-  </head>
-  <body>
+    <canvas id="mileageChart" width="925" height="325"></canvas>
+
+    <br />
+
+    <div id="mileageTable" class="span-24 last">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>From</th>
+            <th>To</th>
+            <th>Odometer (mi)</th>
+            <th>Trip (mi)</th>
+            <th>Fuel (gal)</th>
+            <th>PPG ($/gal)</th>
+            <th>EA ($)</th>
+            <th>MPG (mi/gal)</th>
+            <th>PPM ($/mi)</th>
+            <th>Destination</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="editableRow" v-for="entry in entries">
+            <td style="width:16px;"><a class="edit" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/pencil.png" /></a></td>
+            <td>{{ entry.fromDate }}</td>
+            <td>{{ entry.toDate }}</td>
+            <td>{{ entry.odometer }}</td>
+            <td>{{ entry.tripMileage }}</td>
+            <td>{{ entry.gallons }}</td>
+            <td>{{ entry.pricePerGallon }}</td>
+            <td>{{ (Math.round(100.0 * entry.gallons * entry.pricePerGallon) / 100.0) }}</td>
+            <td>{{ (Math.round(10.0 * entry.tripMileage / entry.gallons) / 10.0) }}</td>
+            <td>{{ (Math.round(1000.0 * entry.gallons * entry.pricePerGallon / entry.tripMileage) / 1000.0) }}</td>
+            <td>{{ entry.destinationId }}</td>
+            <td style="width:16px;"><a class="remove" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/minus-circle.png" /></a></td>
+          </tr>
+        </tbody>
+        <tfoot>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <div style="display:none;">
+    <div id="mileageForm" style="padding: 10px; background:#fff;">
+      <div id="formMessageBox" style="display:block;"></div>
+
+      <form>
+        <fieldset>
+          <legend><img class="icon" src="img/fugue/counter.png" /> Record Mileage</legend>
+          <table class="grid">
+            <tr>
+              <td><label for="fromDate">From</label></td>
+              <td><input name="fromDate" id="fromDate" type="date" v-bind:value="fromDate" /></td>
+            </tr>
+            <tr>
+              <td><label for="toDate">To</label></td>
+              <td><input name="toDate" id="toDate" type="date" v-bind:value="toDate" /></td>
+            </tr>
+            <tr>
+              <td><label for="tripMileage">Trip Mileage</label></td>
+              <td><input name="tripMileage" id="tripMileage" type="number" v-bind:value="tripMileage" /></td>
+            </tr>
+            <tr>
+              <td><label for="odometer">Odometer</label></td>
+              <td><input name="odometer" id="odometer" type="number" v-bind:value="odometer" /></td>
+            </tr>
+            <tr>
+              <td><label for="gallons">Gallons</label></td>
+              <td><input name="gallons" id="gallons" type="number" v-bind:value="gallons" /></td>
+            </tr>
+            <tr>
+              <td><label for="pricePerGallon">Price Per Gallon</label></td>
+              <td><input name="pricePerGallon" id="pricePerGallon" type="number" v-bind:value="pricePerGallon" /> </td>
+            </tr>
+            <tr>
+              <td><label for="providerId">Gas Station</label></td>
+              <td>
+                <select id="providerId" name="providerId">
+		  <option v-for="entry in entries" v-bind:value="entry.id">{{ entry.name }}</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td><label for="destinationId">Destination</label></td>
+              <td>
+                <select id="destinationId" name="destinationId">
+		  <option v-for="entry in entries" v-bind:value="entry.id">{{ entry.name }}</option>
+                </select>
+              </td>
+            </tr>
+          </table>
+          <input name="vehicleId" id="vehicleId" type="hidden" v-bind:value="vehicleId" />
+        </fieldset>
+        <div style="text-align: right;">
+          <a class="submit">Submit</a>
+        </div>
+      </form> 
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+
+  <script src="js/crud.js"></script> 
+  <script src="js/figures.js"></script> 
 
   <script type="text/javascript">
 	$(document).ready(function() {
+		var params = new URLSearchParams(document.location.search)
+		var vehicleId = params.get("id")
+		$("#vehicleMenu").find("a").each(function(){
+			$(this).attr("href", $(this).attr("href") + "?id=" + vehicleId)
+		});
+
 		bindAdd("#mileageForm", "/rest/mileage", {
 			id : -1,
 			toDate : toISO8601DateStr(new Date()),
@@ -33,11 +160,11 @@
 			odometer : 0,
 			gallons : 0,
 			pricePerGallon : 0,
-			vehicleId : 1
+			vehicleId : vehicleId 
 		});
 
 		$.ajax({
-			url: "/rest/vehicles/1/mileage",
+			url: "/rest/vehicles/" + vehicleId + "/mileage",
 			timeout: 3000,
 			success : function(mileage) {
 				mpgPpmFigure("mileageChart", mileage);
@@ -98,138 +225,5 @@
 		});
 	});
   </script>
-
-  <div class="container">
-    <div class="span-6" style="font-weight:bold;">
-      <a href="index.html"><img width="32" height="32" src="img/car.png" class="icon" /> carlog</a>
-    </div>
-    <div class="span-18 last" style="text-align:right;">
-      <a href="settings.html"><img src="img/fugue/gear.png" class="icon" /> Settings</a>
-    </div>
-  </div>
-
-  <div class="container" style="border-top: 1px solid #666; border-bottom:1px solid #ccc; margin-top:6px; margin-bottom: 8px; padding: 3px; ">
-    <div class="span-18">
-      <a href="dashboard.html"><img src="img/fugue/dashboard.png" class="icon" /> Dashboard</a> | 
-      <a href="mileage.html"><img src="img/fugue/counter.png" class="icon" /> Mileage</a> | 
-      <a href="maintenance.html"><img src="img/fugue/wrench.png" class="icon" /> Maintenance</a> | 
-      <a href="events.html"><img src="img/fugue/sticky-note.png" class="icon" /> Events</a>
-    </div>
-
-    <div class="span-6 last" style="text-align:right;">
-      <a id="exportCsv" href="/rest/vehicles/1/mileage/csv"><img src="img/fugue/document-excel-csv.png" class="icon" /> Export CSV</a>
-      <a id="addEntry"><img src="img/fugue/plus-circle.png" class="icon" /> Add Entry</a>
-    </div>
-  </div>
-
-  <div class="container">
-    <div id="messageBox" class="span-24 last"></div>
-
-    <canvas id="mileageChart" width="925" height="325"></canvas>
-
-    <br />
-
-    <div id="mileageTable" class="span-24 last">
-      <table>
-        <thead>
-          <tr>
-            <th></th>
-            <th>From</th>
-            <th>To</th>
-            <th>Odometer (mi)</th>
-            <th>Trip (mi)</th>
-            <th>Fuel (gal)</th>
-            <th>PPG ($/gal)</th>
-            <th>EA ($)</th>
-            <th>MPG (mi/gal)</th>
-            <th>PPM ($/mi)</th>
-            <th>Destination</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="editableRow" v-for="entry in entries">
-            <td style="width:16px;"><a class="edit" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/pencil.png" /></a></td>
-            <td>{{ entry.fromDate }}</td>
-            <td>{{ entry.toDate }}</td>
-            <td>{{ entry.odometer }}</td>
-            <td>{{ entry.tripMileage }}</td>
-            <td>{{ entry.gallons }}</td>
-            <td>{{ entry.pricePerGallon }}</td>
-            <td>{{ (Math.round(100.0 * entry.gallons * entry.pricePerGallon) / 100.0) }}</td>
-            <td>{{ (Math.round(10.0 * entry.tripMileage / entry.gallons) / 10.0) }}</td>
-            <td>{{ (Math.round(1000.0 * entry.gallons * entry.pricePerGallon / entry.tripMileage) / 1000.0) }}</td>
-            <td>{{ entry.destinationId }}</td>
-            <td style="width:16px;"><a class="remove" v-bind:rel="entry.id" style="display:none;"><img src="img/fugue/minus-circle.png" /></a></td>
-          </tr>
-        </tbody>
-        <tfoot>
-        </tfoot>
-      </table>
-    </div>
-
-    <hr />
-
-    <div style="color: #666666; text-align:center;">
-      &copy; 2017-Present Lewellen <img src="img/fugue/creative-commons.png" /> Attribution-NonCommercial-NoDerivs CC BY-NC-ND
-    </div>
-  </div>
-
-  <div style="display:none;">
-    <div id="mileageForm" style="padding: 10px; background:#fff;">
-      <div id="formMessageBox" style="display:block;"></div>
-
-      <form>
-        <fieldset>
-          <legend><img class="icon" src="img/fugue/counter.png" /> Record Mileage</legend>
-          <table class="grid">
-            <tr>
-              <td><label for="fromDate">From</label></td>
-              <td><input name="fromDate" id="fromDate" type="date" v-bind:value="fromDate" /></td>
-            </tr>
-            <tr>
-              <td><label for="toDate">To</label></td>
-              <td><input name="toDate" id="toDate" type="date" v-bind:value="toDate" /></td>
-            </tr>
-            <tr>
-              <td><label for="tripMileage">Trip Mileage</label></td>
-              <td><input name="tripMileage" id="tripMileage" type="number" v-bind:value="tripMileage" /></td>
-            </tr>
-            <tr>
-              <td><label for="odometer">Odometer</label></td>
-              <td><input name="odometer" id="odometer" type="number" v-bind:value="odometer" /></td>
-            </tr>
-            <tr>
-              <td><label for="gallons">Gallons</label></td>
-              <td><input name="gallons" id="gallons" type="number" v-bind:value="gallons" /></td>
-            </tr>
-            <tr>
-              <td><label for="pricePerGallon">Price Per Gallon</label></td>
-              <td><input name="pricePerGallon" id="pricePerGallon" type="number" v-bind:value="pricePerGallon" /> </td>
-            </tr>
-            <tr>
-              <td><label for="providerId">Gas Station</label></td>
-              <td>
-                <select id="providerId" name="providerId">
-		  <option v-for="entry in entries" v-bind:value="entry.id">{{ entry.name }}</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td><label for="destinationId">Destination</label></td>
-              <td>
-                <select id="destinationId" name="destinationId">
-		  <option v-for="entry in entries" v-bind:value="entry.id">{{ entry.name }}</option>
-                </select>
-              </td>
-            </tr>
-          </table>
-          <input name="vehicleId" id="vehicleId" type="hidden" v-bind:value="vehicleId" />
-        </fieldset>
-        <div style="text-align: right;">
-          <a class="submit">Submit</a>
-        </div>
-      </form> 
-    </div>
-  </div>
+</body>
 </html>

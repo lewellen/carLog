@@ -42,7 +42,7 @@ class KeyValidator:
 
 	def isZeroOneBoolean(self):
 		self.checks.append({
-			"func" : lambda : self.dictValue[self.key] in ["0", "1"],
+			"func" : lambda : self.dictValue[self.key] in [0, 1, "0", "1", True, False],
 			"msg" : "'%s' must be a positive integer." % (self.key)
 		})
 		return self

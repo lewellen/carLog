@@ -1,27 +1,53 @@
 <html>
-  <head>
-    <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection"/>
-    <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print" /> 
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection" />
-    <![endif]-->
+<head>
+  <link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection"/>
+  <link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print" /> 
+  <!--[if lt IE 8]>
+  <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection" />
+  <![endif]-->
 
-    <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css" /> 
- 
-    <link rel="stylesheet" href="css/index.css" type="text/css" /> 
+  <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css" /> 
+  <link rel="stylesheet" href="css/index.css" type="text/css" /> 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+  <script src="js/template.js"></script>
+  <script src="js/template-common.js"></script>
+  <link rel="import" href="./templates/common.html" onload="loadCommon(event)">
+</head>
+<body>
+  <div id="header"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+  <div id="vehicles" class="container">
+    <div class="span-24 last">  
+      <h2>Your Garage</h2>
+    </div>
+    <div class="span-8" style="border: 1px solid #ccc; padding: 8px; background-color:#eee;" v-for="entry in entries">
+      <div class="span-2">
+        <img class="icon" width="48" height="48" src="img/car.png" />
+      </div>
+      <div class="span-6 last">
+        <h3><a v-bind:href="'dashboard.html?id=' + entry.id">{{entry.year}} {{entry.make}} {{entry.model}}</a></h3>
+        <ul>
+          <li><a v-bind:href="'mileage.html?id=' + entry.id">Mileage</a></li>
+          <li><a v-bind:href="'maintenance.html?id=' + entry.id">Maintenance</a></li>
+          <li><a v-bind:href="'events.html?id=' + entry.id">Events</a></li>
+        </ul>
+      </div>
+    </div>
 
-    <script src="js/crud.js"></script> 
-    <script src="js/figures.js"></script> 
+    <div class="span-5 last" style="border: 1px solid #ccc; padding: 8px; background-color:#eee;">
+      <div class="span-2">
+        <img class="icon" width="48" height="48" src="img/car.png" />
+      </div>
+      <div class="span-3 last">
+        <h3><a href="vehicles.html">Add Vehicle</a></h3>
+      </div>
+    </div>
+  </div>
 
-    <title>CarLog</title>
-  </head>
-  <body>
+  <div id="footer"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
 
   <script type="text/javascript">
 	$(document).ready(function() {
@@ -39,43 +65,5 @@
 		});
 	});
   </script>
-
-  <div class="container">
-    <div class="span-6" style="font-weight:bold;">
-      <a href="index.html"><img width="32" height="32" src="img/car.png" class="icon" /> carlog</a>
-    </div>
-    <div class="span-18 last" style="text-align:right;">
-      <a href="settings.html"><img src="img/fugue/gear.png" class="icon" /> Settings</a>
-    </div>
-
-    <hr />
-  </div>
-
-  <div id="vehicles" class="container">
-    <div class="span-24 last">  
-      <h2>Your Garage</h2>
-    </div>
-    <div class="span-8" style="border: 1px solid #ccc; padding: 8px; background-color:#eee;" v-for="entry in entries">
-      <div class="span-2">
-        <img class="icon" width="48" height="48" src="img/car.png" />
-      </div>
-      <div class="span-6 last">
-        <h3><a href="dashboard.html">{{entry.year}} {{entry.make}} {{entry.model}}</a></h3>
-        <ul>
-          <li><a href="mileage.html">Mileage</a></li>
-          <li><a href="maintenance.html">Maintenance</a></li>
-          <li><a href="events.html">Events</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="span-8" style="border: 1px solid #ccc; padding: 8px; background-color:#eee;" v-for="entry in entries">
-      <div class="span-2">
-        <img class="icon" width="48" height="48" src="img/car.png" />
-      </div>
-      <div class="span-6 last">
-        <h3><a href="vehicles.html">Add Vehicle</a></h3>
-      </div>
-    </div>
-  </div>
+</body>
 </html>

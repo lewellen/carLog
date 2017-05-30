@@ -142,6 +142,9 @@ class VehiclesTable(CarLogDB):
 		if "id" in entry and int(entry["id"]) > 0:
 			return self.update(entry)
 
+		if "stillOwn" not in entry:
+			entry["stillOwn"] = False 
+
 		validator = DictValidator([
 			KeyValidator(entry, "driverId").existsPositiveInteger(),
 			KeyValidator(entry, "vin").existsNotNullShorterThan(256),
@@ -196,6 +199,9 @@ class VehiclesTable(CarLogDB):
 
 		if "id" in entry and int(entry["id"]) < 0:
 			return self.update(entry)
+
+		if "stillOwn" not in entry:
+			entry["stillOwn"] = False 
 
 		validator = DictValidator([
 			KeyValidator(entry, "id").existsPositiveInteger(),
