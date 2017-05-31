@@ -1,16 +1,16 @@
-function mpgPpmFigure(canvasId, mileage) {
+function mpgPpmFigure(canvasId, mileage) { 
 	return new Chart(document.getElementById(canvasId), {
-		type: 'line',
+		type: "scatter",
 		data: {
-			labels: mileage.map(function(entry) {
-				return new Date(entry.toDate);
-			}),
 			datasets: [{
 				data: mileage.map(function(entry) {
-					if(entry.gallons == 0) {
+					if(entry.gallons == 0 || entry.tripMileage == 0) {
 						return null;
 					}
-					return Math.round(10.0 * entry.tripMileage / entry.gallons) / 10.0;
+					return {
+						x: new Date(entry.toDate), 
+						y: round(entry.tripMileage / entry.gallons, 1)
+					};
 				}),
 				label: "MPG",
 				yAxisID: "mpgAxis",
@@ -22,7 +22,10 @@ function mpgPpmFigure(canvasId, mileage) {
 					if(entry.tripMileage == 0) {
 						return null;
 					}
-					return Math.round( 1000.0 * (entry.gallons * entry.pricePerGallon) / entry.tripMileage) / 1000.0;
+					return { 
+						x: new Date(entry.toDate), 
+						y: round((entry.gallons * entry.pricePerGallon) / entry.tripMileage, 3)
+					};
 				}),
 				label: "PPM",
 				yAxisID: "ppmAxis",
@@ -32,17 +35,21 @@ function mpgPpmFigure(canvasId, mileage) {
 			}]
 		},
 		options: {
+			legend: {
+				position: "bottom"
+			},
 			scales: {
 				xAxes: [{
-					time: [{
-						unit: 'month'
-					}],
+					type: "time",
+					time: {
+						unit: "year"
+					},
 					position: "bottom",
 					scaleLabel: {
 						display: true,
 						labelString: "Date"
 					},
-					display: false
+					display: true
 				}],
 				yAxes: [{
 					"id": "mpgAxis",
@@ -65,49 +72,21 @@ function mpgPpmFigure(canvasId, mileage) {
 }
 
 function daysBetweenFigure(canvasId, mileage) {
-	// Calculate time between events
-	deltas = mileage.map(function(entry) { 
+	deltas = mileage.map(function(entry) {
 		var daysBetween = (new Date(entry.toDate) - new Date(entry.fromDate)) / 1000 / 60 / 60 / 24;
-		var logDaysBetween = Math.log(daysBetween)
-		var rounded = Math.round(10 * logDaysBetween) / 10.0
-		return rounded
+		var logDaysBetween = Math.log(daysBetween + 1.0) / Math.log(10.0);
+		var rounded = round(logDaysBetween, 2);
+		return rounded;
 	});
 
-	// produce data set
 	pairs = deltas.slice(0, -1).map(function(entry, idx) {
-		return {
-			x: entry,
-			y: deltas[idx + 1]
-		}
+		return { x: entry, y: deltas[idx + 1] }
 	});
 
-	// Group by destination
-	byDest = new Map()
-	for(var i = 0, len = pairs.length; i < len; ++i) {
-		destId = mileage[i].destinationId
-		if(!byDest.has(destId)) {
-			byDest.set(destId, [])
-		}
-		byDest.get(destId).push(pairs[i]);
-	}
+	byDest = groupBy(pairs, function(x, i) { return mileage[i].destination });
+	colorsByDest = getColorFromIdMap(byDest);
 
-	indexFromDest = new Map()
-	var index = 0
-	for(var key of byDest.keys()) {
-		indexFromDest.set(key, index)
-		++index
-	}
-
-	// Generate colors for each destination
-	colorsByDest = new Map()
-	for(var key of byDest.keys()) {
-		var percent = 100.0 * indexFromDest.get(key) / (1.0 * byDest.size)
-		var color = tinycolor("hsl(" + percent + "%, 60%, 50%)")
-		console.log(color.toHexString())
-		colorsByDest.set(key, color.toHexString())
-	}
-
-	datasets = []
+	datasets = [];
 	for(var [key, value] of byDest) {
 		datasets.push({
 			data: value,
@@ -125,6 +104,9 @@ function daysBetweenFigure(canvasId, mileage) {
 			datasets: datasets
 		},
 		options: {
+			legend: {
+				position: "bottom"
+			},
 			scales: {
 				xAxes: [{
 					position: "bottom",
