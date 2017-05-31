@@ -32,7 +32,14 @@
   <div class="container">
     <div id="messageBox" class="span-24 last"></div>
 
-    <canvas id="mileageChart" width="925" height="325"></canvas>
+    <div class="span-24 last">
+      <div class="span-12">
+         <canvas id="mpgPpmChart" height="150"></canvas>
+      </div>
+      <div class="span-12 last">
+         <canvas id="daysBetweenChart" height="150"></canvas>
+      </div>
+    </div>
 
     <br />
 
@@ -140,6 +147,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.4.1/tinycolor.min.js"></script>
 
   <script src="js/crud.js"></script> 
   <script src="js/figures.js"></script> 
@@ -185,7 +193,8 @@
 							mileage[i]["destination"] = nameFromDestinationId.get(mileage[i]["destinationId"])
 						}
 
-						mpgPpmFigure("mileageChart", mileage);
+						mpgPpmFigure("mpgPpmChart", mileage);
+						daysBetweenFigure("daysBetweenChart", mileage);
 
 						new Vue({
 							el: "#mileageTable",
