@@ -15,7 +15,7 @@ function mpgPpmFigure(canvasId, mileage) {
 				label: "MPG",
 				yAxisID: "mpgAxis",
 				fill: false,
-				borderColor: "#f00",
+				borderColor: "rgba(0, 0, 0, 0)",
 				backgroundColor: "#d00"
 			}, {
 				data: mileage.map(function(entry) {
@@ -30,7 +30,7 @@ function mpgPpmFigure(canvasId, mileage) {
 				label: "PPM",
 				yAxisID: "ppmAxis",
 				fill: false,
-				borderColor: "#00f",
+				borderColor: "rgba(0, 0, 0, 0)",
 				backgroundColor: "#00d"
 			}]
 		},
@@ -83,7 +83,7 @@ function daysBetweenFigure(canvasId, mileage) {
 		return { x: entry, y: deltas[idx + 1] }
 	});
 
-	byDest = groupBy(pairs, function(x, i) { return mileage[i].destination });
+	byDest = groupBy(pairs, function(x, i) { return mileage[i].destination.substring(0,3) });
 	colorsByDest = getColorFromIdMap(byDest);
 
 	datasets = [];
@@ -120,6 +120,96 @@ function daysBetweenFigure(canvasId, mileage) {
 					scaleLabel: {
 						display: true,
 						labelString: "log(Time until next refill)"
+					}
+				}]
+			}
+		}
+	});
+}
+
+function mileageFigure(canvasId, mileage) {
+	pairs = mileage.map(function(entry, idx) {
+		if(entry.odometer == 0) {
+			return null;
+		}
+		return {
+			x: new Date(entry.toDate),
+			y: entry.odometer
+		};
+	});
+
+	byDest = groupBy(pairs, function(x, i) { return mileage[i].destination.substring(0,3) });
+	colorsByDest = getColorFromIdMap(byDest);
+
+	byYear = groupBy(mileage, function(entry) { return new Date(entry.toDate).getFullYear() } )
+	for(var [key, value] of byYear) {
+		byYear.set(key, round(value.reduce(function(acc, x) { return acc + x.tripMileage}, 0), 1))
+	}
+
+	byYearScatter = []
+	for(var [key, value] of byYear) {
+		console.log(key)
+		byYearScatter.push({ x: new Date(key, 11, 31), y: value})
+	}
+
+	console.log(byYearScatter)
+
+	datasets = [];
+	datasets.push({
+		data: byYearScatter,
+		yAxisID: "annualTripYAxis",
+		label: "Annual",
+		borderColor: "rgba(0, 0, 0, 0)",
+		backgroundColor: "#333",
+		fill: false
+	});
+
+	for(var [key, value] of byDest) {
+		datasets.push({
+			data: value.filter(function(x) { return x != null }),
+			yAxisID: "odometerYAxis",
+			label: key,
+			borderColor: "rgba(0, 0, 0, 0)",
+			backgroundColor: colorsByDest.get(key),
+			fill: false,
+			showLine: false
+		});
+	}
+
+	return new Chart(document.getElementById(canvasId), {
+		type: 'scatter',
+		data: {
+			datasets: datasets
+		},
+		options: {
+			legend: {
+				position: "bottom"
+			},
+			scales: {
+				xAxes: [{
+					type: "time",
+					time: {
+						unit: "year"
+					},
+					position: "bottom",
+					scaleLabel: {
+						display: true,
+						labelString: "Date"
+					}
+				}],
+				yAxes: [{
+					"id" : "odometerYAxis",		
+					position: "left",
+					scaleLabel: {
+						display: true,
+						labelString: "Odometer (mi)"
+					}
+				},{
+					"id" : "annualTripYAxis",
+					position: "right",
+					scaleLabel: {
+						display: true,
+						labelString: "Annual Trip (mi)"
 					}
 				}]
 			}

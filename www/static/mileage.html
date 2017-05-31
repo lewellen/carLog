@@ -33,11 +33,14 @@
     <div id="messageBox" class="span-24 last"></div>
 
     <div class="span-24 last">
-      <div class="span-12">
-         <canvas id="mpgPpmChart" height="150"></canvas>
+      <div class="span-8">
+         <canvas id="mpgPpmChart" height="250"></canvas>
       </div>
-      <div class="span-12 last">
-         <canvas id="daysBetweenChart" height="150"></canvas>
+      <div class="span-8">
+         <canvas id="mileageChart" height="250"></canvas>
+      </div>
+      <div class="span-8 last">
+         <canvas id="daysBetweenChart" height="250"></canvas>
       </div>
     </div>
 
@@ -195,6 +198,7 @@
 						}
 
 						mpgPpmFigure("mpgPpmChart", mileage);
+						mileageFigure("mileageChart", mileage);
 						daysBetweenFigure("daysBetweenChart", mileage);
 
 						new Vue({
