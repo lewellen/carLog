@@ -148,11 +148,8 @@ function mileageFigure(canvasId, mileage) {
 
 	byYearScatter = []
 	for(var [key, value] of byYear) {
-		console.log(key)
 		byYearScatter.push({ x: new Date(key, 11, 31), y: value})
 	}
-
-	console.log(byYearScatter)
 
 	datasets = [];
 	datasets.push({
