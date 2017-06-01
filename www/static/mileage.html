@@ -7,6 +7,10 @@
   <![endif]-->
 
   <link rel="stylesheet" href="css/colorbox/colorbox.css" type="text/css" /> 
+
+  <link rel="stylesheet" type="text/css" href="css/slick/slick.css"/>
+  <link rel="stylesheet" type="text/css" href="css/slick/slick-theme.css"/>
+
   <link rel="stylesheet" href="css/index.css" type="text/css" /> 
 
   <script src="js/template.js"></script>
@@ -32,15 +36,18 @@
   <div class="container">
     <div id="messageBox" class="span-24 last"></div>
 
-    <div class="span-24 last">
-      <div class="span-8">
-         <canvas id="mpgPpmChart" height="250"></canvas>
+    <div id="charts" class="span-24 last" style="height: 375px;">
+      <div>
+         <canvas id="mileageChart" width="800" height="300"></canvas>
       </div>
-      <div class="span-8">
-         <canvas id="mileageChart" height="250"></canvas>
+      <div>
+         <canvas id="costChart" width="800" height="300"></canvas>
       </div>
-      <div class="span-8 last">
-         <canvas id="daysBetweenChart" height="250"></canvas>
+      <div>
+         <canvas id="mpgPpmChart" width="800" height="300"></canvas>
+      </div>
+      <div>
+         <canvas id="daysBetweenChart" width="800" height="300"></canvas>
       </div>
     </div>
 
@@ -151,6 +158,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.4.1/tinycolor.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.min.js"></script>
 
   <script src="js/common.js"></script>
   <script src="js/crud.js"></script> 
@@ -167,16 +175,27 @@
 	}
 
 	function costFigure(canvasId, mileage) {
-		// Undecided on this.
 		annualTotalsByGroupChart(
 			canvasId, mileage, "Annual Cost ($)", "Total Cost ($)",
 			function(x) { return new Date(x.fromDate).getFullYear(); },
-			function(x) { return x.providerId; },
+			function(x) { return x.provider; },
 			function(x) { return x.gallons * x.pricePerGallon; }
 			);
 	}
 
+	function substitute(xs, xName, xIdSelector, ys, yIdSelector, yValueSelector) {
+		var m = new Map(ys.map((y) => [yIdSelector(y), yValueSelector(y)]))
+		for(var x of xs) {
+			x[xName] = m.get(xIdSelector(x));
+		}
+	}
+
 	$(document).ready(function() {
+		$("#charts").slick({
+			dots: true,
+			infinite: true,
+		});
+
 		var params = new URLSearchParams(document.location.search)
 		var vehicleId = params.get("id")
 		$("#vehicleMenu").find("a").each(function(){
@@ -197,62 +216,6 @@
 		$("#exportCSV").attr("href", "/rest/vehicles/" + vehicleId + "/mileage/csv")
 
 		$.ajax({
-			url : "rest/destinations",
-			timeout: 3000,
-			success : function(destinations) {
-				new Vue({
-					el: "#destinationId",
-					data : {
-						entries : destinations
-					}
-				});
-
-				$.ajax({
-					url: "/rest/vehicles/" + vehicleId + "/mileage",
-					timeout: 3000,
-					success : function(mileage) {
-						nameFromDestinationId = new Map(destinations.map((x) => [x.id, x.name]))
-						for(var i = 0, len = mileage.length; i < len; ++i) {
-							mileage[i]["destination"] = nameFromDestinationId.get(mileage[i]["destinationId"])
-						}
-
-						mpgPpmFigure("mpgPpmChart", mileage);
-						mileageFigure("mileageChart", mileage);
-						daysBetweenFigure("daysBetweenChart", mileage);
-
-						new Vue({
-							el: "#mileageTable",
-							data : {
-								entries : order(mileage, function(x) { return x.toDate; }, descComparator)
-							}
-						});
-
-						$(".editableRow")
-							.mouseenter(function() {
-								$(this).find(".edit").show();
-								$(this).find(".remove").show();
-							})
-							.mouseleave(function() {
-								$(this).find(".edit").hide();
-								$(this).find(".remove").hide();
-							});
-
-						bindEdit("#mileageForm", "/rest/mileage", function(entry) {
-							$("#providerId").val(entry.providerId);
-							$("#destinationId").val(entry.destinationId);
-						});
-
-						bindRemove("/rest/mileage");
-					},
-					fail : function() {
-						$("#messageBox").text("Failed to load mileage information");
-					}
-				});
-			}
-		});
-
-
-		$.ajax({
 			url : "rest/providers",
 			timeout: 3000,
 			success : function(providers) {
@@ -262,9 +225,62 @@
 						entries : providers
 					}
 				});
+
+				$.ajax({
+					url : "rest/destinations",
+					timeout: 3000,
+					success : function(destinations) {
+						new Vue({
+							el: "#destinationId",
+							data : {
+								entries : destinations
+							}
+						});
+
+						$.ajax({
+							url: "/rest/vehicles/" + vehicleId + "/mileage",
+							timeout: 3000,
+							success : function(mileage) {
+								substitute(mileage, "destination", (x) => x.destinationId, destinations, (x) => x.id, (x) => x.name);
+								substitute(mileage, "provider", (x) => x.providerId, providers, (x) => x.id, (x) => x.name);
+
+								mileageFigure("mileageChart", mileage);
+								costFigure("costChart", mileage);
+								mpgPpmFigure("mpgPpmChart", mileage);
+								daysBetweenFigure("daysBetweenChart", mileage);
+
+								new Vue({
+									el: "#mileageTable",
+									data : {
+										entries : order(mileage, function(x) { return x.toDate; }, descComparator)
+									}
+								});
+
+								$(".editableRow")
+									.mouseenter(function() {
+										$(this).find(".edit").show();
+										$(this).find(".remove").show();
+									})
+									.mouseleave(function() {
+										$(this).find(".edit").hide();
+										$(this).find(".remove").hide();
+									});
+
+								bindEdit("#mileageForm", "/rest/mileage", function(entry) {
+									$("#providerId").val(entry.providerId);
+									$("#destinationId").val(entry.destinationId);
+								});
+
+								bindRemove("/rest/mileage");
+							},
+							fail : function() {
+								$("#messageBox").text("Failed to load mileage information");
+							}
+						});
+					}
+				});
 			}
 		});
-
 	});
   </script>
 </body>

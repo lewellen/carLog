@@ -83,7 +83,7 @@ function daysBetweenFigure(canvasId, mileage) {
 		return { x: entry, y: deltas[idx + 1] }
 	});
 
-	byDest = groupBy(pairs, function(x, i) { return mileage[i].destination.substring(0,3) });
+	byDest = groupBy(pairs, function(x, i) { return mileage[i].destination });
 	colorsByDest = getColorFromIdMap(byDest);
 
 	datasets = [];
