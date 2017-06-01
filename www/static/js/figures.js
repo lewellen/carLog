@@ -127,56 +127,55 @@ function daysBetweenFigure(canvasId, mileage) {
 	});
 }
 
-function mileageFigure(canvasId, mileage) {
-	pairs = mileage.map(function(entry, idx) {
-		if(entry.odometer == 0) {
-			return null;
-		}
-		return {
-			x: new Date(entry.toDate),
-			y: entry.odometer
-		};
-	});
+function annualTotalsByGroupChart(canvasId, entries, annualLabel, totalLabel, dateSelector, groupSelector, valueSelector) {
+	var years = entries.map(dateSelector)
+	var minYear = years.reduce(function(acc, x) { return Math.min(acc, x); }, Infinity);
+	var maxYear = years.reduce(function(acc, x) { return Math.max(acc, x); }, -Infinity);
+	var yearRange = range(minYear, maxYear + 1)
+	
+	var byGroup = groupBy(entries, groupSelector);
+	byGroup = orderMapKeys(byGroup, ascComparator);
 
-	byDest = groupBy(pairs, function(x, i) { return mileage[i].destination.substring(0,3) });
-	colorsByDest = getColorFromIdMap(byDest);
+	var colorsByProvider = getColorFromIdMap(byGroup); 
+	var dataByProviderByYear = []
 
-	byYear = groupBy(mileage, function(entry) { return new Date(entry.toDate).getFullYear() } )
-	for(var [key, value] of byYear) {
-		byYear.set(key, round(value.reduce(function(acc, x) { return acc + x.tripMileage}, 0), 1))
+	for(var [key, value] of byGroup) {
+		var byYear = groupBy(value, dateSelector);
+		byYear = mapMapValues(byYear, function(xs) { return xs.reduce(function(acc, y) { return acc + valueSelector(y); }, 0.0); });
+		byYear = addMissingMapKeys(byYear, yearRange, 0.0);
+		byYear = orderMapKeys(byYear, ascComparator);
+		byYear = mapMapValues(byYear, function(x) { return round(x, 2); });
+
+		dataByProviderByYear.push({
+			label: key,
+			data: Array.from(byYear.values()),
+			borderColor: "rgba(0, 0, 0, 0)",
+			backgroundColor: colorsByProvider.get(key)
+		});
 	}
 
-	byYearScatter = []
-	for(var [key, value] of byYear) {
-		byYearScatter.push({ x: new Date(key, 11, 31), y: value})
-	}
+	var totalByYear = groupBy(entries, dateSelector);
+	totalByYear = mapMapValues(totalByYear, function(xs) { return xs.reduce(function(acc, y) { return acc + valueSelector(y); }, 0.0); });
+	totalByYear = addMissingMapKeys(totalByYear, yearRange, 0.0);
+	totalByYear = orderMapKeys(totalByYear, ascComparator);
+	totalByYear = scanMap(totalByYear, function(acc, x) { return acc + x; }, 0.0);
+	totalByYear = mapMapValues(totalByYear, function(x) { return round(x, 2); });
 
-	datasets = [];
-	datasets.push({
-		data: byYearScatter,
-		yAxisID: "annualTripYAxis",
-		label: "Annual",
-		borderColor: "rgba(0, 0, 0, 0)",
+	dataByProviderByYear.push({
+		type: "line",
+		yAxisID: "totalYAxis",
+		label: "Total",
+		data: Array.from(totalByYear.values()),
+		borderColor: "#999",
 		backgroundColor: "#333",
 		fill: false
 	});
 
-	for(var [key, value] of byDest) {
-		datasets.push({
-			data: value.filter(function(x) { return x != null }),
-			yAxisID: "odometerYAxis",
-			label: key,
-			borderColor: "rgba(0, 0, 0, 0)",
-			backgroundColor: colorsByDest.get(key),
-			fill: false,
-			showLine: false
-		});
-	}
-
-	return new Chart(document.getElementById(canvasId), {
-		type: 'scatter',
+	new Chart(document.getElementById(canvasId).getContext("2d"), {
+		type: 'bar',
 		data: {
-			datasets: datasets
+			labels: yearRange,
+			datasets: dataByProviderByYear,
 		},
 		options: {
 			legend: {
@@ -184,32 +183,30 @@ function mileageFigure(canvasId, mileage) {
 			},
 			scales: {
 				xAxes: [{
-					type: "time",
-					time: {
-						unit: "year"
-					},
-					position: "bottom",
+					stacked: true,
 					scaleLabel: {
 						display: true,
-						labelString: "Date"
-					}
+						labelString: "Year"
+					}	
 				}],
 				yAxes: [{
-					"id" : "odometerYAxis",		
+					"id": "annualYAxis",
 					position: "left",
+					stacked: true,
 					scaleLabel: {
 						display: true,
-						labelString: "Odometer (mi)"
+						labelString: annualLabel
 					}
 				},{
-					"id" : "annualTripYAxis",
+					"id": "totalYAxis",
 					position: "right",
 					scaleLabel: {
 						display: true,
-						labelString: "Annual Trip (mi)"
+						labelString: totalLabel
 					}
 				}]
 			}
 		}
-	});
+	})
+
 }

@@ -127,86 +127,12 @@
 
   <script type="text/javascript">
 	function costsByProvider(canvasId, maintenance) {
-		var years = maintenance.map(function(x) { return new Date(x.at).getFullYear(); })
-		var minYear = years.reduce(function(acc, x) { return Math.min(acc, x); }, Infinity);
-		var maxYear = years.reduce(function(acc, x) { return Math.max(acc, x); }, -Infinity);
-		var yearRange = range(minYear, maxYear + 1)
-		
-		var byProvider = groupBy(maintenance, function(x) { return x.provider; });
-		byProvider = orderMapKeys(byProvider, ascComparator);
-
-		var colorsByProvider = getColorFromIdMap(byProvider); 
-		var dataByProviderByYear = []
-
-		for(var [key, value] of byProvider) {
-			var byYear = groupBy(value, function(x) { return new Date(x.at).getFullYear(); });
-			byYear = mapMapValues(byYear, function(xs) { return xs.reduce(function(acc, y) { return acc + y.cost; }, 0.0); });
-			byYear = addMissingMapKeys(byYear, yearRange, 0.0);
-			byYear = orderMapKeys(byYear, ascComparator);
-			byYear = mapMapValues(byYear, function(x) { return round(x, 2); });
-
-			dataByProviderByYear.push({
-				label: key,
-				data: Array.from(byYear.values()),
-				borderColor: "rgba(0, 0, 0, 0)",
-				backgroundColor: colorsByProvider.get(key)
-			});
-		}
-
-		var totalByYear = groupBy(maintenance, function(x) { return new Date(x.at).getFullYear(); });
-		totalByYear = mapMapValues(totalByYear, function(xs) { return xs.reduce(function(acc, y) { return acc + y.cost; }, 0.0); });
-		totalByYear = addMissingMapKeys(totalByYear, yearRange, 0.0);
-		totalByYear = orderMapKeys(totalByYear, ascComparator);
-		totalByYear = scanMap(totalByYear, function(acc, x) { return acc + x; }, 0.0);
-		totalByYear = mapMapValues(totalByYear, function(x) { return round(x, 2); });
-
-		dataByProviderByYear.push({
-			type: "line",
-			yAxisID: "totalYAxis",
-			label: "Total",
-			data: Array.from(totalByYear.values()),
-			borderColor: "#999",
-			backgroundColor: "#333",
-			fill: false
-		});
-
-		new Chart(document.getElementById(canvasId).getContext("2d"), {
-			type: 'bar',
-			data: {
-				labels: yearRange,
-				datasets: dataByProviderByYear,
-			},
-			options: {
-				legend: {
-					position: "bottom"
-				},
-				scales: {
-					xAxes: [{
-						stacked: true,
-						scaleLabel: {
-							display: true,
-							labelString: "Year"
-						}	
-					}],
-					yAxes: [{
-						"id": "annualYAxis",
-						position: "left",
-						stacked: true,
-						scaleLabel: {
-							display: true,
-							labelString: "Annual Expense ($)"
-						}
-					},{
-						"id": "totalYAxis",
-						position: "right",
-						scaleLabel: {
-							display: true,
-							labelString: "Total Expense ($)"
-						}
-					}]
-				}
-			}
-		})
+		annualTotalsByGroupChart(
+			canvasId, maintenance, "Annual Expense ($)", "Total Expense ($)", 
+			function(x) { return new Date(x.at).getFullYear(); }, 
+			function(x) { return x.provider; }, 
+			function(x) { return x.cost; }
+			);
 	}
 
 	$(document).ready(function() {

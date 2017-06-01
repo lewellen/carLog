@@ -157,6 +157,25 @@
   <script src="js/figures.js"></script> 
 
   <script type="text/javascript">
+	function mileageFigure(canvasId, mileage) {
+		annualTotalsByGroupChart(
+			canvasId, mileage, "Annual Mileage (mi)", "Total Mileage (mi)",
+			function(x) { return new Date(x.fromDate).getFullYear(); },
+			function(x) { return x.destination; },
+			function(x) { return x.tripMileage; }
+			);
+	}
+
+	function costFigure(canvasId, mileage) {
+		// Undecided on this.
+		annualTotalsByGroupChart(
+			canvasId, mileage, "Annual Cost ($)", "Total Cost ($)",
+			function(x) { return new Date(x.fromDate).getFullYear(); },
+			function(x) { return x.providerId; },
+			function(x) { return x.gallons * x.pricePerGallon; }
+			);
+	}
+
 	$(document).ready(function() {
 		var params = new URLSearchParams(document.location.search)
 		var vehicleId = params.get("id")
