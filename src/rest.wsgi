@@ -11,6 +11,8 @@ from flask.json import JSONEncoder
 from dao import CarLogDB, DriversTable, VehiclesTable, MileageTable, MaintenanceTable, EventsTable, ProvidersTable, ProviderTypesTable, DestinationsTable
 from exploratoryAnalysis import MileageData, Estimator, Summarizer
 
+from nhtsaApi import NHTSARestService
+
 DB_PATH = "/var/www/carLog/db/carLog.db"
 
 class CustomJSONEncoder(JSONEncoder):
@@ -82,8 +84,18 @@ def removeDriver(driverId):
 
 @application.route("/vehicles", methods=["POST"])
 def addOrUpdateVehicle():
+	obj = request.get_json()
+
+	if len(obj["vin"]) > 0:
+		api = NHTSARestService()
+		success, jsonObj = api.decodeVin(obj["vin"], obj["year"])
+		if success:
+			obj["nhtsa"] = jsonObj
+		else:
+			obj["nhtsa"] = None
+
 	with VehiclesTable(DB_PATH) as db:
-		results = db.add(request.get_json())
+		results = db.add(obj)
 	return jsonify(results)
 
 @application.route("/vehicles", methods=["GET"])

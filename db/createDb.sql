@@ -11,6 +11,7 @@ create table vehicles (
 	model varchar(256) not null,
 	year integer not null,
 	stillOwn boolean not null,
+	nhtsa blob null,
 	foreign key(driverId) references drivers(id)
 );
 

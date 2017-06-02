@@ -1,6 +1,7 @@
 import datetime
 import operator
 import sqlite3
+import json
 
 from validation import KeyValidator, DictValidator
 
@@ -145,6 +146,13 @@ class VehiclesTable(CarLogDB):
 		if "stillOwn" not in entry:
 			entry["stillOwn"] = False 
 
+		if "nhtsa" not in entry:
+			entry["nhtsa"] = ""
+		else:
+			entry["nhtsa"] = json.dumps(entry["nhtsa"])
+
+		print entry
+
 		validator = DictValidator([
 			KeyValidator(entry, "driverId").existsPositiveInteger(),
 			KeyValidator(entry, "vin").existsNotNullShorterThan(256),
@@ -160,7 +168,7 @@ class VehiclesTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("insert into vehicles (driverId, vin, make, model, year, stillOwn) values (?, ?, ?, ?, ?, ?)", (entry["driverId"], entry["vin"], entry["make"], entry["model"], entry["year"], entry["stillOwn"]))
+			c.execute("insert into vehicles (driverId, vin, make, model, year, stillOwn, nhtsa) values (?, ?, ?, ?, ?, ?, ?)", (entry["driverId"], entry["vin"], entry["make"], entry["model"], entry["year"], entry["stillOwn"], entry["nhtsa"]))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:
@@ -168,19 +176,19 @@ class VehiclesTable(CarLogDB):
 
 	def find(self, vehicleId):
 		c = self.conn.cursor()
-		c.execute("select id, driverId, vin, make, model, year, stillOwn from vehicles where id = ?", (vehicleId,))
+		c.execute("select id, driverId, vin, make, model, year, stillOwn, nhtsa from vehicles where id = ?", (vehicleId,))
 		result = c.fetchone()
 		return self.__tupleToDict(result)
 
 	def findAll(self):
 		c = self.conn.cursor()
-		c.execute("select id, driverId, vin, make, model, year, stillOwn from vehicles")
+		c.execute("select id, driverId, vin, make, model, year, stillOwn, nhtsa from vehicles")
 		results = c.fetchall()
 		return map(lambda x : self.__tupleToDict(x), results)
 
 	def findByDriverId(self, driverId):
 		c = self.conn.cursor()
-		c.execute("select id, driverId, vin, make, model, year, stillOwn from vehicles where driverId = ?", driverId)
+		c.execute("select id, driverId, vin, make, model, year, stillOwn, nhtsa from vehicles where driverId = ?", driverId)
 		results = c.fetchall()
 		return map(lambda x : self.__tupleToDict(x), results)
 
@@ -203,6 +211,13 @@ class VehiclesTable(CarLogDB):
 		if "stillOwn" not in entry:
 			entry["stillOwn"] = False 
 
+		if "nhtsa" not in entry:
+			entry["nhtsa"] = ""
+		else:
+			entry["nhtsa"] = json.dumps(entry["nhtsa"])
+
+		print entry
+
 		validator = DictValidator([
 			KeyValidator(entry, "id").existsPositiveInteger(),
 			KeyValidator(entry, "driverId").existsPositiveInteger(),
@@ -219,7 +234,7 @@ class VehiclesTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("update vehicles set driverId = ?, vin = ?, make = ?, model = ?, year = ?, stillOwn = ? where id = ?", (entry["driverId"], entry["vin"], entry["make"], entry["model"], entry["year"], entry["stillOwn"], entry["id"]))
+			c.execute("update vehicles set driverId = ?, vin = ?, make = ?, model = ?, year = ?, stillOwn = ?, nhtsa = ? where id = ?", (entry["driverId"], entry["vin"], entry["make"], entry["model"], entry["year"], entry["stillOwn"], entry["id"], entry["nhtsa"]))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:
