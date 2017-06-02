@@ -40,7 +40,7 @@ function bindSubmit(postUrl) {
 				if(result.success) {
 					$.colorbox.close();
 				} else {
-					formNotifier.warn(rsult.msg);
+					formNotifier.warn(result.msg);
 				}
 			},
 			fail : function(result) {

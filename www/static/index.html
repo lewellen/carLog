@@ -52,27 +52,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
 
   <script src="js/notification.js"></script>
-
-  <script type="text/javascript">
-	var pageNotifier = new Notifier("pageNotifier");
-
-	$(document).ready(function() {
-		$.ajax({
-			url : "rest/drivers/1/vehicles",
-			timeout: 3000,
-			success : function(results) {
-				new Vue({
-					el: "#vehicles",
-					data : {
-						entries : results
-					}
-				});
-			},
-			fail : function(result) {
-				pageNotifier.error("Failed to load vehicles");
-			}
-		});
-	});
-  </script>
+  <script src="js/index.html.js"></script>
 </body>
 </html>

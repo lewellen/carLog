@@ -86,30 +86,6 @@
   <script src="js/crud.js"></script> 
   <script src="js/figures.js"></script>
   <script src="js/notification.js"></script>
-
-  <script type="text/javascript">
-	$(document).ready(function() {
-		var pageNotifier = new Notifier("pageNotifier");
-
-		bindAdd("#destinationsForm", "/rest/destinations", {
-			id : -1,
-			name : ""
-		});
-
-		$.ajax({
-			method : "GET",
-			url : "/rest/destinations",
-			success : function(results) {
-				new Vue({
-					el : "#destinationsTable",
-					data : { entries : results }
-				});
-			},
-			fail : function(result) {
-				pageNotifier.error("Failed to load destinations.");
-			}
-		});
-	});
-  </script>
+  <script src="js/destinations.html.js"></script>
 </body>
 </html>

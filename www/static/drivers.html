@@ -86,30 +86,6 @@
   <script src="js/crud.js"></script> 
   <script src="js/figures.js"></script>
   <script src="js/notification.js"></script>
-  
-  <script type="text/javascript">
-	$(document).ready(function() {
-		var pageNotifier = new Notifier("pageNotifier");
-
-		bindAdd("#driversForm", "/rest/drivers", {
-			id : -1,
-			name : ""
-		});
-
-		$.ajax({
-			method : "GET",
-			url : "/rest/drivers",
-			success : function(results) {
-				new Vue({
-					el : "#driversTable",
-					data : { entries : results }
-				});
-			},
-			fail : function(result) {
-				pageNotifier.error("Failed to get drivers.");
-			}
-		});
-	});
-  </script>
+  <script src="js/drivers.html.js"></script>
 </body>
 </html>
