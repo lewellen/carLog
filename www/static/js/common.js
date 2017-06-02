@@ -1,24 +1,24 @@
 function getColorFromIdMap(mapInstance) {
-	var indexFrom = new Map()
-	var index = 0
+	var indexFrom = new Map();
+	var index = 0;
 	for(var key of mapInstance.keys()) {
-		indexFrom.set(key, index)
-		++index
+		indexFrom.set(key, index);
+		++index;
 	}
 
-	var colorFrom = new Map()
+	var colorFrom = new Map();
 	for(var key of mapInstance.keys()) {
-		var percent = 100.0 * indexFrom.get(key) / (1.0 * mapInstance.size)
-		var color = tinycolor("hsl(" + percent + "%, 60%, 50%)").setAlpha(0.7)
-		colorFrom.set(key, color.toRgbString())
+		var percent = 100.0 * indexFrom.get(key) / (1.0 * mapInstance.size);
+		var color = tinycolor("hsl(" + percent + "%, 60%, 50%)").setAlpha(0.7);
+		colorFrom.set(key, color.toRgbString());
 	}
 
-	return colorFrom
+	return colorFrom;
 }
 
 function groupBy(xs, selector) {
 	var grouped = new Map();
-	var index = 0
+	var index = 0;
 	for(var x of xs) {
 		var k = selector(x, index);
 		if(!grouped.has(k)) {
@@ -61,12 +61,19 @@ function scanMap(mapInstance, f, init) {
 	return result;
 }
 
-function toISO8601DateStr(date) {
-	var year = date.getFullYear()
-	var month = date.getMonth() + 1
-	var day = date.getDate()
+function substitute(xs, xName, xIdSelector, ys, yIdSelector, yValueSelector) {
+	var m = new Map(ys.map((y) => [yIdSelector(y), yValueSelector(y)]))
+	for(var x of xs) {
+		x[xName] = m.get(xIdSelector(x));
+	}
+}
 
-	var output = year.toString()
+function toISO8601DateStr(date) {
+	var year = date.getFullYear();
+	var month = date.getMonth() + 1;
+	var day = date.getDate();
+
+	var output = year.toString();
 	output += "-";
 
 	if(month < 10) {

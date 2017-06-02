@@ -20,6 +20,8 @@ function bindSubmit(postUrl) {
 	$(".submit").click(function(e) {
 		e.preventDefault();
 
+		var formNotifier = new Notifier("formNotifier");
+
 		formArray = $('form').serializeArray();
 		var obj = { };
 		for(var i = 0, len = formArray.length; i < len; ++i) {
@@ -36,18 +38,14 @@ function bindSubmit(postUrl) {
 			success : function(result) {
 				console.log(result);
 				if(result.success) {
-					$("#messageBox").text("Success!");
-					$("#messageBox").addClass("success");
 					$.colorbox.close();
 				} else {
-					$("#formMessageBox").text(result.msg);
-					$("#formMessageBox").addClass("notice");
+					formNotifier.warn(rsult.msg);
 				}
 			},
 			fail : function(result) {
 				console.log(result);
-				$("#formMessageBox").text(result.msg);
-				$("#formMessageBox").addClass("error");
+				formNotifier.error("Failed to submit.");
 			}
 		});
 	});
@@ -92,6 +90,8 @@ function bindRemove(deleteUrl) {
 			return;
 		}
 
+		var pageNotifier = new Notifier("pageNotifier");
+
 		$.ajax({
 			method : "DELETE",
 			url : deleteUrl + "/" + $(this).attr("rel"),
@@ -99,14 +99,11 @@ function bindRemove(deleteUrl) {
 				if(result.success == true) {
 					location.reload();
 				} else {
-					$("#formMessageBox").text(result.msg);
-					$("#formMessageBox").addClass("notice");
+					pageNotifier.warn(result.msg);
 				}
 			},
 			fail : function(result) {
-				console.log(result);
-				$("#formMessageBox").text(result.msg);
-				$("#formMessageBox").addClass("error");
+				pageNotifier.warn("Failed to delete record.");
 			}
 		});
 	});

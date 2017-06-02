@@ -29,14 +29,16 @@
     </div>
   </div>
 
+  <div id="pageNotifier" class="container"></div>
+
   <div class="container">
-    <div id="messageBox" class="span-24 last"></div>
- 
-    <div class="span-24 last">
-      <div class="span-24 last">
-        <canvas id="costByProviderChart" width="930" height="350"></canvas>
+    <div id="charts" class="span-24 last" style="height: 375px;">
+      <div>
+        <canvas id="costByProviderChart" width="800" height="300"></canvas>
       </div>
     </div>
+
+    <br />
 
     <div id="maintenanceTable" class="span-24 last">
       <table>
@@ -70,7 +72,7 @@
 
   <div style="display:none;">
     <div id="maintenanceForm" style="padding: 10px; background:#fff;">
-      <div id="formMessageBox" style="display:block;"></div>
+      <div id="formNotifier" style="display: block;"></div>
 
       <form>
         <fieldset>
@@ -120,10 +122,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.4.1/tinycolor.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.min.js"></script>
 
   <script src="js/common.js"></script> 
   <script src="js/crud.js"></script> 
   <script src="js/figures.js"></script> 
+  <script src="js/notification.js"></script>
 
   <script type="text/javascript">
 	function costsByProvider(canvasId, maintenance) {
@@ -136,6 +140,13 @@
 	}
 
 	$(document).ready(function() {
+		var pageNotifier = new Notifier("pageNotifier");
+
+		$("#charts").slick({
+			dots: true,
+			infinite: true,
+		});
+
 		var params = new URLSearchParams(document.location.search)
 		var vehicleId = params.get("id")
 		$("#vehicleMenu").find("a").each(function(){
@@ -155,16 +166,13 @@
 
 		$("#exportCSV").attr("href", "/rest/vehicles/" + vehicleId + "/maintenance/csv")
 
-
 		$.ajax({
 			url : "rest/providers",
 			timeout: 3000,
 			success : function(providers) {
 				new Vue({
 					el: "#providerId",
-					data : {
-						entries : providers
-					}
+					data : { entries : providers }
 				});
 
 				$.ajax({
@@ -172,18 +180,13 @@
 					timeout: 3000,
 					success : function(maintenance) {
 						maintenance = order(maintenance, function(x) { return x.at; }, descComparator);
-						nameFromProviderId = new Map(providers.map((x) => [x.id, x.name]))
-						for(var i = 0, len = maintenance.length; i < len; ++i) {
-							maintenance[i]["provider"] = nameFromProviderId.get(maintenance[i]["providerId"])
-						}
+						substitute(maintenance, "provider", (x) => x.providerId, providers, (x) => x.id, (x) => x.name);
 
 						costsByProvider("costByProviderChart", maintenance);
 
 						new Vue({
 							el: "#maintenanceTable",
-							data : {
-								entries : maintenance
-							}
+							data : { entries : maintenance }
 						});
 
 						$(".editableRow")
@@ -203,10 +206,12 @@
 						bindRemove("/rest/maintenance");
 					},
 					fail : function() {
-						$("#messageBox").text("Failed to load maintenance information");
+						pageNotifier.error("Failed to load vehicle maintenance.");
 					}
 				});
-
+			},
+			fail: function() {
+				pageNotifier.error("Failed to load providers.");
 			}
 		});
 	});

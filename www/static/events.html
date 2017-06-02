@@ -29,9 +29,9 @@
     </div>
   </div>
 
-  <div class="container">
-    <div id="messageBox" class="span-24 last"></div>
+  <div id="pageNotifier" class="container"></div>
 
+  <div class="container">
     <div id="eventsTable" class="span-24 last">
       <table>
         <thead>
@@ -62,7 +62,7 @@
 
   <div style="display:none;">
     <div id="eventsForm" style="padding: 10px; background:#fff;">
-      <div id="formMessageBox" style="display:block;"></div>
+      <div id="formNotifier" style="display: block;"></div>
 
       <form>
         <fieldset>
@@ -99,9 +99,12 @@
   <script src="js/common.js"></script> 
   <script src="js/crud.js"></script> 
   <script src="js/figures.js"></script> 
+  <script src="js/notification.js"></script>
 
   <script type="text/javascript">
 	$(document).ready(function() {
+		var pageNotifier = new Notifier("pageNotifier");
+
 		var params = new URLSearchParams(document.location.search)
 		var vehicleId = params.get("id")
 		$("#vehicleMenu").find("a").each(function(){
@@ -144,7 +147,7 @@
 				bindRemove("/rest/events");
 			},
 			fail : function() {
-				$("#messageBox").text("Failed to load events information");
+				pageNotifier.error("Failed to load vehicle events.");
 			}
 		});
 	});

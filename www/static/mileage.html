@@ -33,9 +33,9 @@
     </div>
   </div>
 
-  <div class="container">
-    <div id="messageBox" class="span-24 last"></div>
+  <div id="pageNotifier" class="container"></div>
 
+  <div class="container">
     <div id="charts" class="span-24 last" style="height: 375px;">
       <div>
          <canvas id="mileageChart" width="800" height="300"></canvas>
@@ -97,7 +97,7 @@
 
   <div style="display:none;">
     <div id="mileageForm" style="padding: 10px; background:#fff;">
-      <div id="formMessageBox" style="display:block;"></div>
+      <div id="formNotifier" style="display: block;"></div>
 
       <form>
         <fieldset>
@@ -162,7 +162,8 @@
 
   <script src="js/common.js"></script>
   <script src="js/crud.js"></script> 
-  <script src="js/figures.js"></script> 
+  <script src="js/figures.js"></script>
+  <script src="js/notification.js"></script>
 
   <script type="text/javascript">
 	function mileageFigure(canvasId, mileage) {
@@ -183,14 +184,9 @@
 			);
 	}
 
-	function substitute(xs, xName, xIdSelector, ys, yIdSelector, yValueSelector) {
-		var m = new Map(ys.map((y) => [yIdSelector(y), yValueSelector(y)]))
-		for(var x of xs) {
-			x[xName] = m.get(xIdSelector(x));
-		}
-	}
-
 	$(document).ready(function() {
+		var pageNotifier = new Notifier("pageNotifier");
+
 		$("#charts").slick({
 			dots: true,
 			infinite: true,
@@ -221,9 +217,7 @@
 			success : function(providers) {
 				new Vue({
 					el: "#providerId",
-					data : {
-						entries : providers
-					}
+					data : { entries : providers }
 				});
 
 				$.ajax({
@@ -232,9 +226,7 @@
 					success : function(destinations) {
 						new Vue({
 							el: "#destinationId",
-							data : {
-								entries : destinations
-							}
+							data : { entries : destinations }
 						});
 
 						$.ajax({
@@ -251,9 +243,7 @@
 
 								new Vue({
 									el: "#mileageTable",
-									data : {
-										entries : order(mileage, function(x) { return x.toDate; }, descComparator)
-									}
+									data : { entries : order(mileage, function(x) { return x.toDate; }, descComparator) }
 								});
 
 								$(".editableRow")
@@ -274,11 +264,17 @@
 								bindRemove("/rest/mileage");
 							},
 							fail : function() {
-								$("#messageBox").text("Failed to load mileage information");
+								pageNotifier.error("Failed to load vehicle mileage.");
 							}
 						});
+					},
+					fail : function(results) {
+						pageNotifier.error("Failed to load destinations.");
 					}
 				});
+			},
+			fail : function(results) {
+				pageNotifier.error("Failed to load providers.");
 			}
 		});
 	});

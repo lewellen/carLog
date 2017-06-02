@@ -28,6 +28,8 @@
     </div>
   </div>
 
+  <div id="pageNotifier" class="container"></div>
+
   <div class="container">
     <div id="vehiclesTable">
       <table>
@@ -63,7 +65,7 @@
 
   <div style="display:none;">
     <div id="vehiclesForm" style="padding: 10px; background:#fff;">
-      <div id="formMessageBox" style="display:block;"></div>
+      <div id="formNotifier" style="display: block;"></div>
 
       <form>
         <fieldset>
@@ -111,20 +113,25 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.6.4/jquery.colorbox-min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.4.1/tinycolor.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.min.js"></script>
 
+  <script src="js/common.js"></script>
   <script src="js/crud.js"></script> 
+  <script src="js/figures.js"></script>
+  <script src="js/notification.js"></script>
 
   <script type="text/javascript">
 	$(document).ready(function() {
+		var pageNotifier = new Notifier("pageNotifier");
+
 		$.ajax({
 			url : "rest/drivers",
 			timeout: 3000,
 			success : function(drivers) {
 				new Vue({
 					el: "#driverId",
-					data : {
-						entries : drivers
-					}
+					data : { entries : drivers }
 				});
 
 				bindAdd("#vehiclesForm", "/rest/vehicles", {
@@ -135,28 +142,26 @@
 					model : "",
 					year : (new Date()).getFullYear(),
 					stillOwn : true
-				});
+				});		
 
 				$.ajax({
 					method : "GET",
 					url : "/rest/drivers/1/vehicles",
 					success : function(results) {
-						nameFromDriverId = new Map(drivers.map((x) => [x.id, x.name]))
-						for(var i = 0, len = results.length; i < len; ++i) {
-							results[i]["driver"] = nameFromDriverId.get(results[i]["driverId"])
-						}
+						substitute(results, "driver", (x) => x.driverId, drivers, (x) => x.id, (x) => x.name);
 
 						new Vue({
 							el : "#vehiclesTable",
-							data : {
-								entries : results
-							}
+							data : { entries : results }
 						});
 					},
 					fail : function(result) {
-						$("#messageBox").html(result);
+						pageNotifier.error("Failed to load vehicles.");
 					}
 				});
+			},
+			fail : function() {
+				pageNotifier.error("Failed to load drivers.");
 			}
 		});
 	});

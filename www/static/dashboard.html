@@ -27,6 +27,8 @@
     </div>
   </div>
 
+  <div id="pageNotifier" class="container"></div>
+
   <div id="dashboard" class="container">
     <div class="span-24 last">
       <h2>Cost Summary</h2>
@@ -84,7 +86,8 @@
 
   <script src="js/common.js"></script>
   <script src="js/crud.js"></script> 
-  <script src="js/figures.js"></script> 
+  <script src="js/figures.js"></script>
+  <script src="js/notification.js"></script>
 
   <script type="text/javascript">
 	function tileBarChart(canvasEl, def) {
@@ -180,6 +183,8 @@
 	}
 	
 	$(document).ready(function() {
+		var pageNotifier = new Notifier("pageNotifier")
+
 		var params = new URLSearchParams(document.location.search)
 		var vehicleId = params.get("id")
 		$("#vehicleMenu").find("a").each(function(){
@@ -201,6 +206,9 @@
 					populateCostSummaryTile(clone, data[i], headings[i]);
 					placeholder.appendChild(clone)
 				}
+			},
+			fail: function(results) {
+				pageNotifier.error("Failed to load vehicle cost summaries.");
 			}
 		});
 
@@ -221,6 +229,9 @@
 					populateEstimateTile(clone, data[i], headings[i], units[i], numDigits[i])
 					placeholder.appendChild(clone)
 				}
+			},
+			fail: function(results) {
+				pageNotifier.error("Failed to lost vehicle estimates.");
 			}
 		});
 	});
