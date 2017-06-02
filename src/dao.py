@@ -234,7 +234,7 @@ class VehiclesTable(CarLogDB):
 
 		try:
 			c = self.conn.cursor()
-			c.execute("update vehicles set driverId = ?, vin = ?, make = ?, model = ?, year = ?, stillOwn = ?, nhtsa = ? where id = ?", (entry["driverId"], entry["vin"], entry["make"], entry["model"], entry["year"], entry["stillOwn"], entry["id"], entry["nhtsa"]))
+			c.execute("update vehicles set driverId = ?, vin = ?, make = ?, model = ?, year = ?, stillOwn = ?, nhtsa = ? where id = ?", (entry["driverId"], entry["vin"], entry["make"], entry["model"], entry["year"], entry["stillOwn"], entry["nhtsa"], entry["id"]))
 			self.conn.commit()
 			return self.getResult(c.lastrowid, c.rowcount == 1, None)
 		except sqlite3.Error, e:
