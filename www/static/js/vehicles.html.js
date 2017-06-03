@@ -30,6 +30,19 @@ $(document).ready(function() {
 						el : "#vehiclesTable",
 						data : { entries : results }
 					});
+
+					$(".vin").colorbox({
+						inline: true,
+						href: "#vinDetail",
+						onOpen: function() {
+							nhtsa = JSON.parse($(this).attr("data"))
+							console.log(nhtsa)
+							new Vue({
+								el: "#vinDetail",
+								data : nhtsa
+							});
+						}
+					});
 				},
 				fail : function(result) {
 					pageNotifier.error("Failed to load vehicles.");

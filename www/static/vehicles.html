@@ -49,7 +49,7 @@
             <td></td>
             <td>{{ entry.id }}</td>
             <td>{{ entry.driver }}</td>
-            <td>{{ entry.vin }}</td>
+            <td><a class="vin" v-bind:data="entry.nhtsa">{{ entry.vin }}</a></td>
             <td>{{ entry.make }}</td>
             <td>{{ entry.model }}</td>
             <td>{{ entry.year }}</td>
@@ -106,6 +106,44 @@
           <a class="submit">Submit</a>
         </div>
       </form> 
+    </div>
+
+    <div id="vinDetail" style="padding: 10px; background:#fff;">
+      <fieldset><legend><img src="img/fugue/magnifier.png" class="icon" /> VIN:{{ VIN }} Details</legend>
+        <table class="grid">
+          <tr>
+            <td><label>Vehicle</label></td>
+            <td>{{ ModelYear}} {{ Make }} {{ Model }} {{ Series }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>{{ Doors }} Door {{BodyClass}} {{VehicleType}} <hr style="margin-top:1em; margin-bottom:1em;" /></td>
+          </tr>
+          <tr>
+            <td><label>Manfacturer</label></td>
+            <td>{{Manufacturer}} {{ PlantCompanyName }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>{{PlantCity}}, {{PlantState}}, {{PlantCountry}} <hr style="margin-top:1em; margin-bottom:1em;" /> </td>
+          </tr>
+          <tr>
+            <td><legend>Engine</legend></td>
+            <td>{{DisplacementL}}L {{EngineCylinders}}CYL {{ EngineConfiguration}} {{ EngineModel }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>{{ ValveTrainDesign }}</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>{{ FuelInjectionType }}</td>
+          </tr>
+        </table>
+	<div class="small quiet" style="text-align:center;">
+          Details provided by NHTSA VIN Decoder
+        </div>
+      </fieldset>
     </div>
   </div>
 

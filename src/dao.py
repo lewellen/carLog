@@ -133,7 +133,8 @@ class VehiclesTable(CarLogDB):
 			"make" : operator.itemgetter(3)(result),
 			"model" : operator.itemgetter(4)(result),
 			"year" : operator.itemgetter(5)(result),
-			"stillOwn" : operator.itemgetter(6)(result)
+			"stillOwn" : operator.itemgetter(6)(result),
+			"nhtsa" : operator.itemgetter(7)(result)
 		}
 
 	def add(self, entry):
