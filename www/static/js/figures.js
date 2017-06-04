@@ -71,34 +71,39 @@ function mpgPpmFigure(canvasId, mileage) {
 	});
 }
 
-function daysBetweenFigure(canvasId, mileage) {
-	deltas = mileage.map(function(entry) {
-		var daysBetween = (new Date(entry.toDate) - new Date(entry.fromDate)) / 1000 / 60 / 60 / 24;
-		var logDaysBetween = Math.log(daysBetween + 1.0) / Math.log(10.0);
-		var rounded = round(logDaysBetween, 2);
-		return rounded;
-	});
+function timeMapChart(canvasId, xs, label, dateSelector, groupSelector) {
+	byGroup = groupBy(xs, groupSelector);
+	colorFromGroup = getColorFromIdMap(byGroup);
 
-	pairs = deltas.slice(0, -1).map(function(entry, idx) {
-		return { x: entry, y: deltas[idx + 1] }
-	});
+	datasets = []
+	for(var [key, value] of byGroup) {
+		deltas = []
+		for(var i = 0, len = value.length - 1; i < len; ++i) {
+			var timeBetween = Math.abs(dateSelector(value[i]) - dateSelector(value[i + 1]));
+			var daysBetween = timeBetween / 1000.0 / 60.0 / 60.0 / 24.0;
+			var softplusDaysBetween = Math.log(daysBetween + 1.0) / Math.log(10.0);
+			var rounded = round(softplusDaysBetween, 2);
+			deltas.push(rounded)
+		}
 
-	byDest = groupBy(pairs, function(x, i) { return mileage[i].destination });
-	colorsByDest = getColorFromIdMap(byDest);
-
-	datasets = [];
-	for(var [key, value] of byDest) {
-		datasets.push({
-			data: value,
-			fill: false,
-			label: key,
-			borderColor: "rgba(0, 0, 0, 0)",
-			backgroundColor: colorsByDest.get(key),
-			showLine: false
+		pairs = deltas.slice(0, -1).map(function(delta, idx) {
+			return { x: delta, y: deltas[idx + 1] }
 		});
+
+		if(pairs.length > 0) {
+			datasets.push({
+				data: pairs,
+				fill: false,
+				label: key,
+				borderColor: "rgba(0, 0, 0, 0)",
+				backgroundColor: colorFromGroup.get(key),
+				showLine: false
+			});
+		}
 	}
 
-	return new Chart(document.getElementById(canvasId), {
+	var ctx = document.getElementById(canvasId).getContext("2d");
+	return new Chart(ctx, {
 		type: 'scatter',
 		data: {
 			datasets: datasets
@@ -112,14 +117,14 @@ function daysBetweenFigure(canvasId, mileage) {
 					position: "bottom",
 					scaleLabel: {
 						display: true,
-						labelString: "log(Time since last refill)"
+						labelString: "log(Days since last " + label + ")"
 					}
 				}],
 				yAxes: [{
 					position: "left",
 					scaleLabel: {
 						display: true,
-						labelString: "log(Time until next refill)"
+						labelString: "log(Days until next " + label + ")"
 					}
 				}]
 			}

@@ -16,6 +16,13 @@ function costFigure(canvasId, mileage) {
 		);
 }
 
+function daysBetweenRefillsByDestination(canvasId, mileage) {
+	timeMapChart(canvasId, mileage, "Refill",
+		function(x) { return new Date(x.toDate); },
+		function(x) { return x.destination; }
+		);
+}
+
 $(document).ready(function() {
 	var pageNotifier = new Notifier("pageNotifier");
 
@@ -71,7 +78,7 @@ $(document).ready(function() {
 							mileageFigure("mileageChart", mileage);
 							costFigure("costChart", mileage);
 							mpgPpmFigure("mpgPpmChart", mileage);
-							daysBetweenFigure("daysBetweenChart", mileage);
+							daysBetweenRefillsByDestination("daysBetweenChart", mileage);
 
 							new Vue({
 								el: "#mileageTable",

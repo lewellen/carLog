@@ -7,6 +7,13 @@ function costsByProvider(canvasId, maintenance) {
 		);
 }
 
+function daysBetweenEvents(canvasId, maintenance) {
+	timeMapChart(canvasId, maintenance, "maintenance",
+		function(x) { return new Date(x.at); },
+		function(x) { return x.provider.replace(/\#|\d+/gi, "").trim(); }
+		);
+}
+
 $(document).ready(function() {
 	var pageNotifier = new Notifier("pageNotifier");
 
@@ -51,6 +58,7 @@ $(document).ready(function() {
 					substitute(maintenance, "provider", (x) => x.providerId, providers, (x) => x.id, (x) => x.name);
 
 					costsByProvider("costByProviderChart", maintenance);
+					daysBetweenEvents("daysBetweenEventsChart", maintenance);
 
 					new Vue({
 						el: "#maintenanceTable",

@@ -103,9 +103,14 @@ class Estimator:
 		if id(xs) not in self.rvFromObj:
 			return None
 
+		alpha = 0.95
+		length = len(xs)
+		lb = int(round(0.5 * (1 - alpha) * length))
+		ub = int(round(1 - 0.5 * (1 - alpha) * length))
+		
 		scipyRV = self.rvFromObj[id(xs)]
-		loc, scale = scipyRV.fit(numpy.array(xs))
-		interval = scipyRV.interval(0.95, loc, scale)
+		loc, scale = scipyRV.fit(numpy.array(sorted(xs)[lb:ub]))
+		interval = scipyRV.interval(alpha, loc, scale)
 		#quantiles = scipy.stats.mstats.mquantiles(xs)
 		#maximum = numpy.max(xs)
 
