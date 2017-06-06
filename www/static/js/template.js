@@ -1,12 +1,13 @@
 class TemplateImport {
 	constructor(loadEvent) {
-		this.doc = loadEvent.target.import
+		this.doc = loadEvent.target.import;
 	}
 
 	placeComponent(templateId, placeholderId) {
-		var template = this.doc.querySelector(templateId)
-		var placeholder = document.querySelector(placeholderId)
-		var clone = document.importNode(template.content, true)
-		placeholder.appendChild(clone)
+		var template = this.doc.getElementById(templateId);
+		var placeholder = document.getElementById(placeholderId);
+		var clone = document.importNode(template.content, true);
+		placeholder.appendChild(clone);
+		return clone;
 	}
 }

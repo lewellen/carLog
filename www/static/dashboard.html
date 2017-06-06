@@ -11,18 +11,15 @@
 
   <script src="js/template.js"></script>
   <script src="js/template-common.js"></script>
+  <script src="js/template-vehicleSection.js"></script>
   <link rel="import" href="./templates/common.html" onload="loadCommon(event)">
+  <link rel="import" href="./templates/vehicleSection.html" onload="loadVehicleSection(event)">
 </head>
 <body>
   <div id="header"></div>
 
   <div class="container" style="border-bottom:1px solid #ccc; margin-bottom:1em; padding-top:0.25em; padding-bottom:0.25em;">
-    <div id="vehicleMenu" class="span-18">
-      <a href="dashboard.html"><img src="img/fugue/dashboard.png" class="icon" /> Dashboard</a> | 
-      <a href="mileage.html"><img src="img/fugue/counter.png" class="icon" /> Mileage</a> | 
-      <a href="maintenance.html"><img src="img/fugue/wrench.png" class="icon" /> Maintenance</a> | 
-      <a href="events.html"><img src="img/fugue/sticky-note.png" class="icon" /> Events</a>
-    </div>
+    <div id="vehicleMenu" class="span-18"></div>
     <div class="span-6 last" style="text-align:right;">
     </div>
   </div>
