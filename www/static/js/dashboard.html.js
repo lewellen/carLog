@@ -91,13 +91,9 @@ function populateEstimateTile(clone, data, heading, unit, numDigits) {
 }
 
 $(document).ready(function() {
-	var pageNotifier = new Notifier("pageNotifier")
-
-	var params = new URLSearchParams(document.location.search)
-	var vehicleId = params.get("id")
-	$("#vehicleMenu").find("a").each(function(){
-		$(this).attr("href", $(this).attr("href") + "?id=" + vehicleId)
-	});
+	var pageNotifier = new Notifier("pageNotifier");
+	var params = new URLSearchParams(document.location.search);
+	var vehicleId = params.get("id");
 
 	$.ajax({
 		method : "GET",

@@ -11,6 +11,13 @@
 	margin: 2px;
 }
 
+.sectionMenu {
+	border-bottom: 1px solid #ccc; 
+	margin-bottom: 1em; 
+	padding-top: 0.25em; 
+	padding-bottom: 0.25em;
+}
+
 a, a:hover {
 	cursor: pointer;
 	text-decoration: none;

@@ -16,16 +16,12 @@ function daysBetweenEvents(canvasId, maintenance) {
 
 $(document).ready(function() {
 	var pageNotifier = new Notifier("pageNotifier");
+	var params = new URLSearchParams(document.location.search)
+	var vehicleId = params.get("id")
 
 	$("#charts").slick({
 		dots: true,
 		infinite: true,
-	});
-
-	var params = new URLSearchParams(document.location.search)
-	var vehicleId = params.get("id")
-	$("#vehicleMenu").find("a").each(function(){
-		$(this).attr("href", $(this).attr("href") + "?id=" + vehicleId)
 	});
 
 	bindAdd("#maintenanceForm", "/rest/maintenance", {

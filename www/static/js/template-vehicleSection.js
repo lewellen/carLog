@@ -1,6 +1,6 @@
 class VehicleMenu {
-	constructor(element) {
-		this.element = element;
+	constructor(divId) {
+		this.element = document.getElementById(divId);
 		this.vehicleId = null;
 	}
 
@@ -9,7 +9,7 @@ class VehicleMenu {
 		for(var aEl  of aEls) {
 			var href = aEl.getAttribute("href");
 			href = href.replace(/\?.*$/, "");
-			href = href + "?id=" + this.vehicleId;
+			href = href + "?id=" + value;
 			aEl.setAttribute("href", href);
 		}
 	}
@@ -20,9 +20,8 @@ function loadVehicleSection(e) {
 	var vehicleId = params.get("id");
 
 	var templateImport = new TemplateImport(e);
-	var vehicleMenu = new VehicleMenu(templateImport.placeComponent(
-		"vehicleMenu-template", "vehicleMenu"
-		));
+	templateImport.placeComponent("vehicleMenu-template", "vehicleMenu");
 
+	var vehicleMenu = new VehicleMenu("vehicleMenu");
 	vehicleMenu.vehicleId = vehicleId;
 }
