@@ -34,16 +34,12 @@ $(document).ready(function() {
 		infinite: true,
 	});
 
-	bindAdd("#mileageForm", "/rest/mileage", {
-		id : -1,
-		toDate : toISO8601DateStr(new Date()),
-		fromDate : toISO8601DateStr(new Date()),
-		tripMileage : 0,
-		odometer : 0,
-		gallons : 0,
-		pricePerGallon : 0,
-		vehicleId : vehicleId 
-	});
+    $.ajax({
+        url: "/rest/vehicles/" + vehicleId + "/mileage/default",
+        success : function(defaultInstance) {
+            bindAdd("#mileageForm", "/rest/mileage", defaultInstance);
+        }
+    });
 
 	$("#exportCSV").attr("href", "/rest/vehicles/" + vehicleId + "/mileage/csv")
 

@@ -309,6 +309,14 @@ class MileageTable(CarLogDB):
 		results = c.fetchall()
 		return map(lambda x : self.__tupleToDict(x), results)
 
+	def findMostRecentToDateByVehicleId(self, vehicleId):
+		c = self.conn.cursor()
+		c.execute("select id, vehicleId, providerId, destinationId, fromDate, toDate, tripMileage, odometer, gallons, pricePerGallon from mileageEntries where vehicleId = ? order by toDate desc", (vehicleId,))
+		result = c.fetchone()
+		print result
+		return self.__tupleToDict(result)
+
+
 	def remove(self, entryId):
 		try:
 			c = self.conn.cursor()

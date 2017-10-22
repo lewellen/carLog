@@ -182,6 +182,29 @@ def findMileageByVehicleId(vehicleId):
 		results = db.findByVehicleId(vehicleId)
 	return jsonify(results)
 
+@application.route("/vehicles/<vehicleId>/mileage/default", methods=["GET"])
+def getMileageDeafultValues(vehicleId):
+    result = None
+    with MileageTable(DB_PATH) as db:
+        result = db.findMostRecentToDateByVehicleId(vehicleId)
+
+	prevToDate = datetime.datetime.now()
+	if result != None:
+		prevToDate = result['toDate']
+
+    return jsonify({
+		'id' : -1,
+		'toDate' : datetime.datetime.now().date().isoformat(),
+		'fromDate' : prevToDate.date().isoformat(),
+		'tripMileage' : 0,
+		'odometer' : 0,
+		'gallons' : 0,
+		'pricePerGallon' : 0,
+		'vehicleId' : int(vehicleId),
+		'destinationId': result['destinationId'],
+		'providerId': result['providerId']
+	})
+
 @application.route("/vehicles/<vehicleId>/mileage/csv", methods=["GET"])
 def exportMileageByVehicleId(vehicleId):
 	mileage = None
